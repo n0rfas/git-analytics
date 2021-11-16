@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Git Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.6.0/dist/chart.min.js" integrity="sha256-7lWo7cjrrponRJcS6bc8isfsPDwSKoaYfGIHgSheQkk=" crossorigin="anonymous"></script>
+</head>
+<body>
+    <main>
+        <div class="container py-4">
+          <header class="pb-3 mb-4 border-bottom">
+            <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+              <span class="fs-4" id="title-branch"></span>
+            </a>
+          </header>
+          
+          <div class="p-5 mb-4 bg-light rounded-3">
+              <div class="container-fluid py-5">
+                <h1 class="display-5 fw-bold">Сommits by day of the week. </h1>
+                <canvas id="chartWeek" width="400" height="150"></canvas>
+            </div>
+          </div>
+
+          <div class="row align-items-md-stretch">
+            <div class="col-md-6">
+              <div class="h-100 p-5 text-white bg-dark rounded-3">
+                <h2>Git analytics</h2>
+                <p id="text-total"></p>
+                <p id="text-first"></p>
+                <p id="text-last"></p>
+                <a href="https://github.com/n0rfas/git-analytics" class="btn btn-outline-light">Go GitHub</a>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="h-100 p-5 bg-light border rounded-3">
+                <h2>Number of commits by repository authors</h2>
+                <canvas id="chartAuthors" width="150" height="150"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-5 mb-4 bg-light rounded-3">
+            <div class="container-fluid py-5">
+              <h1 class="display-5 fw-bold">Сommits by hour of the day. </h1>
+              <canvas id="chartDay" width="400" height="150"></canvas>
+            </div>
+          </div>
+
+          <div class="p-5 mb-4 bg-light rounded-3">
+            <div class="container-fluid py-5">
+              <h1 class="display-5 fw-bold">Сommits by day of the month. </h1>
+              <canvas id="chartMonth" width="400" height="150"></canvas>
+            </div>
+          </div>
+          <footer class="pt-3 mt-4 text-muted border-top">
+            &copy; 2021
+          </footer>
+        </div>
+    </main>
+    <script>
+        const COLORS = [
+            '#4dc9f6',
+            '#f67019',
+            '#f53794',
+            '#537bc4',
+            '#acc236',
+            '#166a8f',
+            '#00a950',
+            '#58595b',
+            '#8549ba'
+        ];
+
+        function getColor(index) {
+            return COLORS[index % COLORS.length];
+        }
+
+        fetch('about')
+            .then((response) => {return response.json()})
+            .then((data) => {
+                document.getElementById('title-branch').innerText = data.branch_name;            
+                document.getElementById('text-total').innerText = "Total number of comments: " + data['total_number_commit'];
+                document.getElementById('text-first').innerText = "Date of the first comment: " + data['date_first_commit'];
+                document.getElementById('text-last').innerText = "Date of the last comment: " + data['date_last_commit'] 
+            })
+        
+        fetch('authors')
+        .then((response) => {return response.json()})
+        .then((data) => {
+            labels = [];
+            dataValues = [];
+            backgroundColor = [];
+            let number_author = 0
+            for(var d in data){
+                number_author = number_author +1;
+                labels.push(d);
+                dataValues.push(data[d]);
+                backgroundColor.push(getColor(number_author));
+            }
+            console.log(labels);
+            console.log(dataValues);
+            console.log(backgroundColor);
+
+            buildChartAuthors(labels, dataValues, backgroundColor);
+        })
+
+        fetch('week')
+        .then((response) => {return response.json()})
+            .then((data) => {
+                let list_authors = new Set();
+                for(var key in data){
+                    day=data[key];
+                    for(var author in day){
+                        list_authors.add(author);
+                    }
+                }
+                let list_days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                let values = [];
+
+                let number_author = 0
+                for(let author of list_authors){
+                    number_author = number_author + 1;
+                    dataAuthor = []
+                    for(var day of list_days_of_week){
+                        if(author in data[day]){
+                            dataAuthor.push(data[day][author]);
+                        }else{
+                            dataAuthor.push(0);
+                        }
+                    }
+                    values.push({
+                        'label': author,
+                        'data': dataAuthor,
+                        'backgroundColor': getColor(number_author)
+                    });
+                }
+                buildChartWeek(list_days_of_week, values);
+            })
+        
+        fetch('day')
+        .then((response) => {return response.json()})
+            .then((data) => {
+                let list_authors = new Set();
+                for(var key in data){
+                    day=data[key];
+                    for(var author in day){
+                        list_authors.add(author);
+                    }
+                }
+                let list_hour_of_day = [];
+                for(const d of Array(24).keys()) {
+                    list_hour_of_day.push(d.toString());
+                }
+                let values = [];
+                let number_author = 0
+                for(let author of list_authors){
+                    number_author = number_author + 1;
+                    dataAuthor = []
+                    for(var hour of list_hour_of_day){
+                        if(author in data[hour]){
+                            dataAuthor.push(data[hour][author]);
+                        }else{
+                            dataAuthor.push(0);
+                        }
+                    }
+                    values.push({
+                        'label': author,
+                        'data': dataAuthor,
+                        'backgroundColor': getColor(number_author)
+                    });
+                }
+                buildChartDay(list_hour_of_day, values);
+            })
+        
+
+        fetch('month')
+        .then((response) => {return response.json()})
+            .then((data) => {
+                let list_authors = new Set();
+                for(var key in data){
+                    day=data[key];
+                    for(var author in day){
+                        list_authors.add(author);
+                    }
+                }
+                let list_days_of_month = [];
+                for(const d of Array(32).keys()) {
+                    if (d>0){
+                        list_days_of_month.push(d.toString());
+                    }
+                }
+                let values = [];
+                let number_author = 0
+                for(let author of list_authors){
+                    number_author = number_author + 1;
+                    dataAuthor = []
+                    for(var day of list_days_of_month){
+                        if(author in data[day]){
+                            dataAuthor.push(data[day][author]);
+                        }else{
+                            dataAuthor.push(0);
+                        }
+                    }
+                    values.push({
+                        'label': author,
+                        'data': dataAuthor,
+                        'backgroundColor': getColor(number_author)
+                    });
+                }
+                buildChartMonth(list_days_of_month, values);
+            })
+        
+        function buildChartAuthors(labels, dataValues, backgroundColor){
+            const ctx = document.getElementById('chartAuthors');
+            const myChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            data: dataValues,
+                            backgroundColor: backgroundColor
+                        }
+                    ]
+                },
+                options: {}
+            });
+        }
+
+        function buildChartWeek(labels, values){
+            const ctx = document.getElementById('chartWeek');
+            const myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: values
+                },
+                options: {}
+            });
+        }
+
+        function buildChartDay(labels, values){
+            const ctx = document.getElementById('chartDay');
+            const myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: values
+                },
+                options: {}
+            });
+        }
+
+        function buildChartMonth(labels, values){
+            const ctx = document.getElementById('chartMonth');
+            const myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: values
+                },
+                options: {}
+            });
+        }
+    </script>
+</body>
+</html>
