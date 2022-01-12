@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="git-analytics",
-    version="0.0.1",
+    version="0.0.2",
     author="n0rfas",
     author_email="antsa@yandex.ru",
     description="The detailed analysis tool for git repositories.",
@@ -25,6 +25,7 @@ setuptools.setup(
         "flask"
     ],
     package_dir={"": "src"},
+    package_data={"": ["*.html"]},
     packages=setuptools.find_packages(where="src"),
     python_requires=">=3.7",
     entry_points = {

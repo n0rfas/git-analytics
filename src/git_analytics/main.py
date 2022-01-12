@@ -1,12 +1,14 @@
 
+import os
 from collections import Counter, defaultdict
 
 from flask import Flask, send_from_directory
 from git import Repo
 
-
 repo: Repo = Repo()
 app = Flask('GitAnalitics')
+
+app.root_path = os.path.dirname(os.path.abspath(__file__))
 
 dict_authors = Counter()
 dict_day_of_week = defaultdict(Counter)
