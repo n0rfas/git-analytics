@@ -15,12 +15,26 @@ dict_day_of_week = defaultdict(Counter)
 dict_hour_of_day = defaultdict(Counter)
 dict_day_of_month = defaultdict(Counter)
 
+dict_tags = Counter()
+dict_tags_of_author = defaultdict(Counter)
+
+# feature, fix, docs, style, refactor, test, chore, merge, WIP, not_specified
+TYPE_LIST = ['feature', 'fix', 'docs', 'style', 'refactor', 'test', 'chore', 'merge', 'wip',]
+def _get_type_list(commit_message: str) -> list[str]:
+    part_commit_message = commit_message.split(':')[0]
+    return [tag for tag in TYPE_LIST if tag in part_commit_message]
+
+
 for c in repo.iter_commits():
     dict_authors[c.author.name] += 1
     dict_day_of_week[c.committed_datetime.weekday()][c.author.name] +=1
     dict_hour_of_day[c.committed_datetime.hour][c.author.name] +=1
     dict_day_of_month[c.committed_datetime.day][c.author.name] +=1
 
+    tags = _get_type_list(c.message)
+    for tag in tags:
+        dict_tags[tag] += 1
+        dict_tags_of_author[c.author.name][tag] += 1
 
 @app.route("/")
 def index():
