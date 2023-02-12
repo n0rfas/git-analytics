@@ -39,7 +39,6 @@ class GitAnaliticsResource:
 
     def on_get_index(self, req, resp):
         raise falcon.HTTPMovedPermanently('index.html')
-        resp.text = 'addsad'
         
     def on_get_about(self, req, resp):
         l = list(repo.iter_commits())
@@ -85,7 +84,7 @@ app.add_route('/api/week', analitics_resource, suffix='week')
 app.add_route('/api/day', analitics_resource, suffix='day')
 
 
-if __name__ == '__main__':
+def run():
     with make_server('', 8000, app) as httpd:
         print('Service started at http://localhost:8000/')
         httpd.serve_forever()
