@@ -15,20 +15,33 @@ dict_day_of_month = defaultdict(Counter)
 
 dict_tags = Counter()
 dict_tags_of_author = defaultdict(Counter)
-
+dict_number_lines = defaultdict(int)
+dict_line_change = {}
 
 TYPE_LIST = ['feature', 'fix', 'docs', 'style', 'refactor', 'test', 'chore', 'merge', 'wip',]
 def _get_type_list(commit_message: str):
     part_commit_message = commit_message.split(':')[0]
     return [tag for tag in TYPE_LIST if tag in part_commit_message]
 
-
+number_rows_in_previous_days = 0
 for c in repo.iter_commits():
     dict_authors[c.author.name] += 1
     dict_day_of_week[c.committed_datetime.weekday()][c.author.name] +=1
     dict_hour_of_day[c.committed_datetime.hour][c.author.name] +=1
     dict_day_of_month[c.committed_datetime.day][c.author.name] +=1
 
+    number_rows_in_current_commit = c.stats.total['insertions'] - c.stats.total['deletions']
+    number_rows_in_previous_days += number_rows_in_current_commit
+    dict_number_lines[c.committed_date] = number_rows_in_previous_days
+
+    data = dict_line_change.get(c.committed_date)
+    if not data:
+        data = {'insertions': 0, 'deletions': 0}
+    dict_line_change[c.committed_date] = {
+        'insertions': c.stats.total['insertions'] + data['insertions'],
+        'deletions': c.stats.total['deletions'] + data['deletions'],
+    }
+    
     tags = _get_type_list(c.message)
     for tag in tags:
         dict_tags[tag] += 1
@@ -69,6 +82,12 @@ class GitAnaliticsResource:
 
     def on_get_day(self, req, resp):
         resp.media = { hour:dict_hour_of_day[hour] for hour in range(0,24)}
+    
+    def on_get_number_lines(self, req, resp):
+        resp.media = dict_number_lines
+
+    def on_get_line_change(self, req, resp):
+        resp.media = dict_line_change
 
 
 app = falcon.App()
@@ -82,9 +101,14 @@ app.add_route('/api/authors', analitics_resource, suffix='authors')
 app.add_route('/api/month', analitics_resource, suffix='month')
 app.add_route('/api/week', analitics_resource, suffix='week')
 app.add_route('/api/day', analitics_resource, suffix='day')
+app.add_route('/api/lines', analitics_resource, suffix='number_lines')
+app.add_route('/api/change', analitics_resource, suffix='line_change')
 
 
 def run():
     with make_server('', 8000, app) as httpd:
         print('Service started at http://localhost:8000/')
         httpd.serve_forever()
+
+if __name__ == '__main__':
+    run()
