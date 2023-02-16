@@ -1,4 +1,5 @@
 import os
+from dataclasses import dataclass, asdict
 from collections import Counter, defaultdict
 from wsgiref.simple_server import make_server
 
@@ -6,9 +7,17 @@ import falcon
 from git import Repo
 
 
+@dataclass
+class Author:
+    commits: int = 0
+    insertions: int = 0
+    deletions: int = 0
+    maximum_change: int = 0
+
+
 repo: Repo = Repo()
 
-dict_authors = Counter()
+dict_authors = defaultdict(Author)
 dict_day_of_week = defaultdict(Counter)
 dict_hour_of_day = defaultdict(Counter)
 dict_day_of_month = defaultdict(Counter)
@@ -25,7 +34,13 @@ def _get_type_list(commit_message: str):
 
 number_rows_in_previous_days = 0
 for c in repo.iter_commits():
-    dict_authors[c.author.name] += 1
+
+    dict_authors[c.author.name].commits += 1
+    dict_authors[c.author.name].insertions += c.stats.total['insertions']
+    dict_authors[c.author.name].deletions += c.stats.total['deletions']
+    if c.stats.total['lines'] > dict_authors[c.author.name].maximum_change:
+        dict_authors[c.author.name].maximum_change = c.stats.total['lines']
+
     dict_day_of_week[c.committed_datetime.weekday()][c.author.name] +=1
     dict_hour_of_day[c.committed_datetime.hour][c.author.name] +=1
     dict_day_of_month[c.committed_datetime.day][c.author.name] +=1
@@ -64,7 +79,9 @@ class GitAnaliticsResource:
         }
     
     def on_get_authors(self, req, resp):
-        resp.media = dict_authors
+        resp.media = {
+            author: asdict(achievements)
+        for author, achievements in dict_authors.items()}
         
     def on_get_month(self, req, resp):
         resp.media = { day:dict_day_of_month[day] for day in range(1,32)}

@@ -101,7 +101,7 @@
                 for (var d in data) {
                     number_author = number_author + 1;
                     labels.push(d);
-                    dataValues.push(data[d]);
+                    dataValues.push(data[d].commits);
                     backgroundColor.push(getColor(number_author));
                 }
                 console.log(labels);
