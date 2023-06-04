@@ -25,14 +25,13 @@ dict_day_of_month = defaultdict(Counter)
 dict_tags = Counter()
 dict_tags_of_author = defaultdict(Counter)
 dict_number_lines = defaultdict(int)
-dict_line_change = {}
 
 TYPE_LIST = ['feature', 'fix', 'docs', 'style', 'refactor', 'test', 'chore', 'merge', 'wip',]
 def _get_type_list(commit_message: str):
     part_commit_message = commit_message.split(':')[0]
     return [tag for tag in TYPE_LIST if tag in part_commit_message]
 
-number_rows_in_previous_days = 0
+lines_in_day = {}
 for c in repo.iter_commits():
 
     dict_authors[c.author.name].commits += 1
@@ -45,22 +44,20 @@ for c in repo.iter_commits():
     dict_hour_of_day[c.committed_datetime.hour][c.author.name] +=1
     dict_day_of_month[c.committed_datetime.day][c.author.name] +=1
 
-    number_rows_in_current_commit = c.stats.total['insertions'] - c.stats.total['deletions']
-    number_rows_in_previous_days += number_rows_in_current_commit
-    dict_number_lines[c.committed_date] = number_rows_in_previous_days
-
-    data = dict_line_change.get(c.committed_date)
-    if not data:
-        data = {'insertions': 0, 'deletions': 0}
-    dict_line_change[c.committed_date] = {
-        'insertions': c.stats.total['insertions'] + data['insertions'],
-        'deletions': c.stats.total['deletions'] + data['deletions'],
-    }
+    lines_in_day[c.committed_date] = c.stats.total['insertions'] - c.stats.total['deletions']
     
     tags = _get_type_list(c.message)
     for tag in tags:
         dict_tags[tag] += 1
         dict_tags_of_author[c.author.name][tag] += 1
+
+old_rows = 0
+sort_day = list(lines_in_day.keys())
+sort_day.sort()
+for day in sort_day:
+    number_rows = lines_in_day[day]
+    dict_number_lines[day] = old_rows + number_rows
+    old_rows = old_rows + number_rows
 
 
 class GitAnaliticsResource:
@@ -101,11 +98,8 @@ class GitAnaliticsResource:
         resp.media = { hour:dict_hour_of_day[hour] for hour in range(0,24)}
     
     def on_get_number_lines(self, req, resp):
-        resp.media = dict_number_lines
-
-    def on_get_line_change(self, req, resp):
-        resp.media = dict_line_change
-
+        result = [{'date': date, 'value': value} for date, value in dict_number_lines.items()]
+        resp.media = result
 
 app = falcon.App()
 analitics_resource = GitAnaliticsResource()
@@ -119,7 +113,6 @@ app.add_route('/api/month', analitics_resource, suffix='month')
 app.add_route('/api/week', analitics_resource, suffix='week')
 app.add_route('/api/day', analitics_resource, suffix='day')
 app.add_route('/api/lines', analitics_resource, suffix='number_lines')
-app.add_route('/api/change', analitics_resource, suffix='line_change')
 
 
 def run():
