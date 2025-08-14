@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "git-analytics"
-version = "0.1.4"
+version = "0.1.5"
 description = "The detailed analysis tool for git repositories."
 authors = ["n0rfas <antsa@yandex.ru>"]
 license = "MIT"
