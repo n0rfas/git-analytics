@@ -1,5 +1,7 @@
 __pycache__
+.DS_Store
 .vscode
+.venv
 *.egg-info
 build/
 dist/
