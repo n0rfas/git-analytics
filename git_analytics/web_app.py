@@ -28,9 +28,12 @@ class GitAnalyticsResource:
         resp.media = self._data.get("authors_statistics", {})
 
     def on_get_month(self, req, resp):
-        resp.media = self._data.get("historical_statistics", {}).get(
-            "dict_day_of_month", {}
-        )
+        resp.media = {
+            day: self._data.get("historical_statistics", {})
+            .get("dict_day_of_month", {})
+            .get(day, {})
+            for day in range(1, 32)
+        }
 
     def on_get_week(self, req, resp):
         dict_day_of_week = self._data.get("historical_statistics", {}).get(
@@ -47,10 +50,12 @@ class GitAnalyticsResource:
         }
 
     def on_get_day(self, req, resp):
-        dict_hour_of_day = self._data.get("historical_statistics", {}).get(
-            "dict_hour_of_day", {}
-        )
-        resp.media = {hour: dict_hour_of_day[hour] for hour in range(0, 24)}
+        resp.media = {
+            day: self._data.get("historical_statistics", {})
+            .get("dict_hour_of_day", {})
+            .get(day, {})
+            for day in range(0, 24)
+        }
 
     def on_get_number_lines(self, req, resp):
         resp.media = self._data.get("lines_statistics", {})
