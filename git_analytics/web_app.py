@@ -60,6 +60,12 @@ class GitAnalyticsResource:
     def on_get_number_lines(self, req, resp):
         resp.media = self._data.get("lines_statistics", {})
 
+    def on_get_commit_types(self, req, resp):
+        resp.media = {
+            key.strftime("%Y-%m-%d"): value
+            for key, value in self._data.get("commit_type", {}).items()
+        }
+
 
 def create_web_app(data: Dict[str, Any]) -> falcon.App:
     app = falcon.App()
@@ -74,5 +80,6 @@ def create_web_app(data: Dict[str, Any]) -> falcon.App:
     app.add_route("/api/week", analytics_resource, suffix="week")
     app.add_route("/api/day", analytics_resource, suffix="day")
     app.add_route("/api/lines", analytics_resource, suffix="number_lines")
+    app.add_route("/api/commit_types", analytics_resource, suffix="commit_types")
 
     return app
