@@ -6,6 +6,7 @@ from git_analytics.adapters import git_commit_to_analytics_commit
 from git_analytics.analyzers import (
     AuthorsStatisticsAnalyzer,
     CommitAnalyticsRunner,
+    CommitTypeAnalyzer,
     HistoricalStatisticsAnalyzer,
     LinesAnalyzer,
 )
@@ -19,6 +20,7 @@ if __name__ == "__main__":
             AuthorsStatisticsAnalyzer(),
             HistoricalStatisticsAnalyzer(),
             LinesAnalyzer(),
+            CommitTypeAnalyzer(),
         ]
     )
 

@@ -74,6 +74,13 @@
 
             <div class="p-5 mb-4 bg-light rounded-3">
                 <div class="container-fluid py-5">
+                    <h1 class="display-5 fw-bold">Types of commits by date</h1>
+                    <canvas id="typesCommits" width="400" height="150"></canvas>
+                </div>
+            </div>
+
+            <div class="p-5 mb-4 bg-light rounded-3">
+                <div class="container-fluid py-5">
                     <h1 class="display-5 fw-bold">Historical information</h1>
                     <table class="table table-striped">
                         <thead>
@@ -91,7 +98,7 @@
             </div>
 
             <footer class="pt-3 mt-4 text-muted border-top">
-                &copy; 2025 ver 0.1.5
+                &copy; 2025 ver 0.1.6
             </footer>
         </div>
     </main>
@@ -358,6 +365,62 @@
                     tableBody.appendChild(row);
                 }
             });
+
+        fetch('api/commit_types')
+            .then((response) => response.json())
+            .then((data) => {
+                const labels = Object.keys(data).sort();
+                const types = new Set();
+
+                for (const date in data) {
+                    for (const type in data[date]) {
+                        types.add(type);
+                    }
+                }
+
+                const datasets = [];
+                let colorIndex = 0;
+
+                for (const type of types) {
+                    const dataValues = labels.map((date) => data[date]?.[type] || 0);
+                    datasets.push({
+                        label: type,
+                        data: dataValues,
+                        backgroundColor: getColor(colorIndex),
+                    });
+                    colorIndex++;
+                }
+
+                buildChartTypesComments(labels, datasets);
+            });
+
+        function buildChartTypesComments(labels, datasets) {
+            const ctx = document.getElementById('typesCommits');
+            const myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets,
+                },
+                options: {
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                    },
+                    responsive: true,
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                        },
+                    },
+                },
+            });
+        }
     </script>
 </body>
 
