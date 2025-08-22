@@ -12,7 +12,8 @@ from git_analytics.analyzers import (
 )
 from git_analytics.web_app import create_web_app
 
-if __name__ == "__main__":
+
+def run():
     repo = Repo()
 
     runner = CommitAnalyticsRunner(
@@ -52,3 +53,7 @@ if __name__ == "__main__":
         finally:
             httpd.server_close()
             print("Web service stopped")
+
+
+if __name__ == "__main__":
+    run()
