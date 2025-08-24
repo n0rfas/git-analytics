@@ -1,6 +1,22 @@
-from dataclasses import dataclass
-from datetime import datetime
-from enum import Enum
+from dataclasses import asdict, dataclass
+from datetime import date, datetime
+from typing import Any, Dict
+
+
+@dataclass
+class AnalyticsResult:
+    def to_dict(self) -> Dict[str, Any]:
+        return self._make_json_safe(asdict(self))
+
+    @staticmethod
+    def _make_json_safe(obj):
+        if isinstance(obj, date):
+            return obj.isoformat()
+        if isinstance(obj, list):
+            return [AnalyticsResult._make_json_safe(x) for x in obj]
+        if isinstance(obj, dict):
+            return {k: AnalyticsResult._make_json_safe(v) for k, v in obj.items()}
+        return obj
 
 
 @dataclass
@@ -12,22 +28,3 @@ class AnalyticsCommit:
     lines_deletions: int
     files_changed: int
     message: str
-
-
-@dataclass
-class AuthorStatistics:
-    commits: int = 0
-    insertions: int = 0
-    deletions: int = 0
-
-
-class CommitType(Enum):
-    FEATURE = "feature"
-    FIX = "fix"
-    DOCS = "docs"
-    STYLE = "style"
-    REFACTOR = "refactor"
-    TEST = "test"
-    CHORE = "chore"
-    MERGE = "merge"
-    WIP = "wip"
