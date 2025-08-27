@@ -4,16 +4,40 @@
     <meta charset="utf-8" />
     <title>Git Analytics</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link href="css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
     <header class="bg-dark text-white py-3">
-        <div class="container">
-            <h1 class="h4 mb-0">Git-Analytics</h1>
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <img src="favicon.svg" alt="Logo" width="32" height="32" class="me-2">
+                <h1 class="h4 mb-0">Git-Analytics</h1>
+            </div>
+            <div>
+                <a href="https://git-analytics.com" target="_blank" class="btn btn-outline-light">
+                    Site
+                </a>
+                <a href="https://github.com/n0rfas/git-analytics"  target="_blank"  class="btn btn-outline-light">
+                    GitHub
+                </a>
+            </div>
         </div>
     </header>
     <main class="flex-grow-1">
         <div class="container">
+            <div class="row  mt-4">
+                <div class="col-md-4">
+                    <div class="card h-100 w-100">
+                        <div class="card-header">
+                            Common statistics
+                        </div>
+                        <div class="card-body">
+                            <span id="titleBranch"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row mt-4">
                 <div class="col-md-12">
                     <h1 class="h3 mb-4">Statistics by Authors</h1>
@@ -84,12 +108,52 @@
             </div>
             <div class="row mt-4">
                 <div class="col-md-12">
+                    <h1 class="h3 mb-4">Other statistics</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
                     <div class="card h-100 w-100">
                         <div class="card-header">
                             Number of lines of code
                         </div>
                         <div class="card-body">
                             <canvas id="chartLines"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card h-100 w-100">
+                        <div class="card-header">
+                            Types of commits by date
+                        </div>
+                        <div class="card-body">
+                            <canvas id="typesCommits"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4 mb-4">
+                <div class="col-md-12">
+                    <div class="card h-100 w-100">
+                        <div class="card-header">
+                            Number of lines of code
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Author</th>
+                                        <th scope="col">Commits</th>
+                                        <th scope="col">Insertions</th>
+                                        <th scope="col">Deletions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="authorsTableBody">
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

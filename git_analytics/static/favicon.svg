@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="60" fill="#2A2F36"/>
+
+  <!-- Orange vertical line with circles -->
+  <line x1="50" y1="140" x2="50" y2="370" stroke="#FF5C00" stroke-width="40" stroke-linecap="round"/>
+  <circle cx="50" cy="140" r="40" fill="#FF5C00"/>
+  <circle cx="50" cy="370" r="40" fill="#FF5C00"/>
+
+  <!-- Orange bars (like histogram) -->
+  <rect x="110" y="280" width="50" height="100" fill="#FF5C00"/>
+  <rect x="180" y="150" width="50" height="230" fill="#FF5C00"/>
+
+  <!-- White text GA (shifted further left) -->
+  <text x="240" y="360" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="180" fill="#FFFFFF">GA</text>
+</svg>

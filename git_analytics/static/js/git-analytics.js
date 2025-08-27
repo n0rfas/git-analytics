@@ -5,6 +5,23 @@ async function fetchStatistics() {
     }
     return await response.json();
   }
+
+  function renderSummary(stats) {
+    const s = stats.commits_summary;
+    if (!s) return;
+  
+    const summaryEl = document.getElementById("titleBranch");
+    if (!summaryEl) return;
+  
+    summaryEl.innerHTML = `
+        <div>
+          <strong>Total number of authors:</strong> ${s.total_number_authors}<br>
+          <strong>Total number of commits:</strong> ${s.total_number_commit}<br>
+          <strong>Date of the first commit:</strong> ${s.date_first_commit}<br>
+          <strong>Date of the last commit:</strong> ${s.date_last_commit}
+        </div>
+    `;
+  }
   
   function buildAuthorsChart(authorsData) {
     const labels = Object.keys(authorsData);
@@ -310,16 +327,36 @@ async function fetchStatistics() {
     });
   }
 
+  function buildAuthorsTable(authorsData) {
+    const tbody = document.getElementById("authorsTableBody");
+    tbody.innerHTML = "";
+  
+    for (const [author, stats] of Object.entries(authorsData)) {
+      const row = document.createElement("tr");
+  
+      row.innerHTML = `
+        <td>${author}</td>
+        <td>${stats.commits}</td>
+        <td>${stats.insertions.toLocaleString()}</td>
+        <td>${stats.deletions.toLocaleString()}</td>
+      `;
+  
+      tbody.appendChild(row);
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", async () => {
     try {
       const stats = await fetchStatistics();
       const authorsData = stats.authors_statistics.authors;
+      renderSummary(stats);
       buildAuthorsChart(authorsData);
       buildAuthorsStackedChart(stats.authors_statistics.authors);
       buildHourByAuthorChart(stats.historical_statistics.hour_of_day);
       buildWeekByAuthorChart(stats.historical_statistics.day_of_week);
       buildDayOfMonthByAuthorChart(stats.historical_statistics.day_of_month);
       buildLinesChart(stats.lines_statistics.items);
+      buildAuthorsTable(authorsData);
     } catch (err) {
       console.error("Error loading statistics:", err);
     }
