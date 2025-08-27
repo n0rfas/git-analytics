@@ -28,7 +28,7 @@ class AuthorsStatisticsAnalyzer(CommitAnalyzer):
         author = self._dict_authors[commit.commit_author]
         author.commits += 1
         author.insertions += commit.lines_insertions
-        author.deletions += commit.lines_deletions
+        author.deletions -= commit.lines_deletions
 
     def result(self) -> AnalyticsResult:
         return Result(

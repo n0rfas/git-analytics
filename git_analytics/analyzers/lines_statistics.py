@@ -1,6 +1,6 @@
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date
-from collections import defaultdict
 from typing import List
 
 from git_analytics.entities import AnalyticsCommit, AnalyticsResult

@@ -4,7 +4,6 @@ from .commits_summary import CommitsSummaryAnalyzer
 from .historical_statistics import HistoricalStatisticsAnalyzer
 from .lines_statistics import LinesAnalyzer
 
-
 __all__ = [
     "AuthorsStatisticsAnalyzer",
     "CommitTypeAnalyzer",

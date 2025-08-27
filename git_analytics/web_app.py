@@ -28,12 +28,8 @@ class GitAnalyticsResource:
             raise falcon.HTTPBadRequest("Invalid date format", "Use YYYY-MM-DD")
 
         data = self._engine.run(start_date=start_date, stop_date=stop_date)
-        # resp.media = {
-        #     "start_date": start_date.isoformat() if start_date else None,
-        #     "stop_date": stop_date.isoformat() if stop_date else None,
-        # }
-
         result = {key: value.to_dict() for key, value in data.items()}
+
         resp.media = result
 
 

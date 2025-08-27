@@ -1,8 +1,8 @@
 from collections import Counter, defaultdict
-from typing import Dict
-from enum import Enum
 from dataclasses import dataclass
 from datetime import date
+from enum import Enum
+from typing import Dict
 
 from git_analytics.entities import AnalyticsCommit, AnalyticsResult
 from git_analytics.interfaces import CommitAnalyzer

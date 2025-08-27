@@ -1,8 +1,5 @@
-from collections import defaultdict
-from typing import Dict
-from datetime import date
-
 from dataclasses import dataclass
+from datetime import date
 
 from git_analytics.entities import AnalyticsCommit, AnalyticsResult
 from git_analytics.interfaces import CommitAnalyzer

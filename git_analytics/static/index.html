@@ -6,91 +6,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <main>
-        <div class="container py-4">
-            <header class="pb-3 mb-4 border-bottom">
-                <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
-                    <span class="fs-4" id="title-branch"></span>
-                </a>
-            </header>
-
-            <div class="p-5 mb-4 bg-light rounded-3">
-                <div class="container-fluid py-5">
-                    <h1 class="display-5 fw-bold">Сommits by day of the week</h1>
-                    <canvas id="chartWeek" width="400" height="150"></canvas>
+<body class="d-flex flex-column min-vh-100">
+    <header class="bg-dark text-white py-3">
+        <div class="container">
+            <h1 class="h4 mb-0">Git-Analytics</h1>
+        </div>
+    </header>
+    <main class="flex-grow-1">
+        <div class="container">
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h1 class="h3 mb-4">Statistics by Authors</h1>
                 </div>
             </div>
-
-            <div class="row align-items-md-stretch">
-                <div class="col-md-6">
-                    <div class="h-100 p-5 text-white bg-dark rounded-3">
-                        <h2>Git analytics</h2>
-                        <p id="text-total"></p>
-                        <p id="text-first"></p>
-                        <p id="text-last"></p>
-                        <a href="https://github.com/n0rfas/git-analytics" class="btn btn-outline-light">Go GitHub</a>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card h-100 w-100">
+                        <div class="card-header">
+                            Commit statistics by Authors
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartAuthors"></canvas>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="h-100 p-5 bg-light border rounded-3">
-                        <h2>Number of commits by repository authors</h2>
-                        <canvas id="chartAuthors" width="150" height="150"></canvas>
+                <div class="col-md-8">
+                    <div class="card h-100 w-100">
+                        <div class="card-header">
+                            Code Lines Statistics by Authors
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartAuthors2"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div class="p-5 mb-4 bg-light rounded-3">
-                <div class="container-fluid py-5">
-                    <h1 class="display-5 fw-bold">Сommits by hour of the day</h1>
-                    <canvas id="chartDay" width="400" height="150"></canvas>
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h1 class="h3 mb-4">Statistics by time</h1>
                 </div>
             </div>
-
-            <div class="p-5 mb-4 bg-light rounded-3">
-                <div class="container-fluid py-5">
-                    <h1 class="display-5 fw-bold">Сommits by day of the month</h1>
-                    <canvas id="chartMonth" width="400" height="150"></canvas>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card h-100 w-100">
+                        <div class="card-header">
+                            Commit by day of day
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartDay"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="p-5 mb-4 bg-light rounded-3">
-                <div class="container-fluid py-5">
-                    <h1 class="display-5 fw-bold">Number of lines of code</h1>
-                    <canvas id="chartLines" width="400" height="150"></canvas>
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card h-100 w-100">
+                        <div class="card-header">
+                            Commit by day of week
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartWeek"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="p-5 mb-4 bg-light rounded-3">
-                <div class="container-fluid py-5">
-                    <h1 class="display-5 fw-bold">Types of commits by date</h1>
-                    <canvas id="typesCommits" width="400" height="150"></canvas>
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card h-100 w-100">
+                        <div class="card-header">
+                            Commit by day of week
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartMonth"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="p-5 mb-4 bg-light rounded-3">
-                <div class="container-fluid py-5">
-                    <h1 class="display-5 fw-bold">Historical information</h1>
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th scope="col">Author</th>
-                                <th scope="col">Commits</th>
-                                <th scope="col">Insertions</th>
-                                <th scope="col">Deletions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="authorsTableBody">
-                        </tbody>
-                    </table>
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card h-100 w-100">
+                        <div class="card-header">
+                            Number of lines of code
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartLines"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <footer class="pt-3 mt-4 text-muted border-top">
-                &copy; 2025 ver 0.2.0
-            </footer>
         </div>
     </main>
+    <footer class="bg-dark text-white py-3 mt-auto">
+        <div class="container">
+            <span>&copy; 2025 ver 0.2.0</span>
+        </div>
+    </footer>
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/chart.umd.min.js"></script>
     <script src="js/git-analytics.js"></script>
