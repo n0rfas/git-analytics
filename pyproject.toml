@@ -12,6 +12,11 @@ python = ">=3.7"
 GitPython = "~=3.1.0"
 falcon = "~=3.1.0"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4"
+mypy = "^1.4"
+ruff = "^0.12"
+
 [tool.poetry.scripts]
 git-analytics = 'git_analytics.main:run'
 
