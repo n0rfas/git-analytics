@@ -30,7 +30,10 @@ TYPE_COMMIT_LIST: tuple = tuple(ct.value for ct in CommitType)
 
 
 def _get_type_list(commit_message: str):
-    return [tag for tag in TYPE_COMMIT_LIST if tag in commit_message]
+    result = [tag for tag in TYPE_COMMIT_LIST if tag in commit_message]
+    if result:
+        return result
+    return [CommitType.UNKNOWN.value]
 
 
 class CommitTypeAnalyzer(CommitAnalyzer):
@@ -47,4 +50,8 @@ class CommitTypeAnalyzer(CommitAnalyzer):
             ] += 1
 
     def result(self) -> Result:
-        return Result(items={})
+        days = defaultdict(dict)
+        for dt, st in self._commit_types_by_date.items():
+            days[str(dt)] = dict(st)
+
+        return Result(items=dict(days))

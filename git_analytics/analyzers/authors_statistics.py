@@ -28,15 +28,16 @@ class AuthorsStatisticsAnalyzer(CommitAnalyzer):
         author = self._dict_authors[commit.commit_author]
         author.commits += 1
         author.insertions += commit.lines_insertions
-        author.deletions -= commit.lines_deletions
+        author.deletions += commit.lines_deletions
 
-    def result(self) -> AnalyticsResult:
+    def result(self) -> Result:
         return Result(
-            authors=dict(
-                sorted(
-                    self._dict_authors.items(),
-                    key=lambda item: item[1].commits,
-                    reverse=True,
+            authors={
+                name: AuthorStatistics(
+                    commits=st.commits,
+                    insertions=st.insertions,
+                    deletions=st.deletions,
                 )
-            )
+                for name, st in self._dict_authors.items()
+            }
         )

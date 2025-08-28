@@ -25,3 +25,36 @@ git-analytics
 ![screenshot 2](https://live.staticflickr.com/65535/52680543193_c676158df2_k.jpg)
 
 ![screenshot 3](https://live.staticflickr.com/65535/52679528732_1f7b9351cd_k.jpg)
+
+## Development
+
+### Installation
+
+```bash
+poetry install --with dev
+```
+
+### Running
+
+```bash
+poetry run git-analytics
+```
+
+### Tests
+
+```bash
+poetry run pytest
+```
+
+### Type Checking
+
+```bash
+poetry run mypy .
+```
+
+### Linting
+
+```bash
+poetry run ruff check .
+poetry run ruff check --select I .
+```

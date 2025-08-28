@@ -48,7 +48,7 @@ async function fetchStatistics() {
     const labels = Object.keys(authorsData);
   
     const insertions = labels.map(a => authorsData[a].insertions || 0);
-    const deletions  = labels.map(a => authorsData[a].deletions  || 0);
+    const deletions  = labels.map(a => -(authorsData[a].deletions || 0));
   
     const ctx = document.getElementById("chartAuthors2").getContext("2d");
   
@@ -327,6 +327,51 @@ async function fetchStatistics() {
     });
   }
 
+  function buildCommitTypeChart(commitTypeData) {
+    const ctx = document.getElementById("typesCommits").getContext("2d");
+    const dates = Object.keys(commitTypeData).sort();
+  
+    
+    const commitTypes = new Set();
+    dates.forEach(date => {
+      Object.keys(commitTypeData[date]).forEach(type => commitTypes.add(type));
+    });
+  
+    
+    const datasets = Array.from(commitTypes).map((type, i) => ({
+      label: type,
+      data: dates.map(date => commitTypeData[date][type] || 0),
+      stack: "commitTypes"
+    }));
+  
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: dates,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: {
+            mode: "index",
+            intersect: false
+          }
+        },
+        scales: {
+          x: {
+            stacked: true
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+          }
+        }
+      }
+    });
+  }
+
   function buildAuthorsTable(authorsData) {
     const tbody = document.getElementById("authorsTableBody");
     tbody.innerHTML = "";
@@ -356,6 +401,7 @@ async function fetchStatistics() {
       buildWeekByAuthorChart(stats.historical_statistics.day_of_week);
       buildDayOfMonthByAuthorChart(stats.historical_statistics.day_of_month);
       buildLinesChart(stats.lines_statistics.items);
+      buildCommitTypeChart(stats.commit_type.items);
       buildAuthorsTable(authorsData);
     } catch (err) {
       console.error("Error loading statistics:", err);
