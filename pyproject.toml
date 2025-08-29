@@ -5,7 +5,7 @@ description = "The detailed analysis tool for git repositories."
 authors = ["n0rfas <n0rfas@protonmail.com>"]
 license = "MIT"
 readme = "README.md"
-keywords = "git,analytics,repository"
+keywords = "git,statistics,analytics,git-statistics,git-status,git-analysis,git-stats,git-analytics,git-analyze"
 home-page = "https://git-analytics.com"
 project-url = "https://github.com/n0rfas/git-analytics"
 packages = [{include = "git_analytics"}]
