@@ -1,10 +1,13 @@
 [tool.poetry]
 name = "git-analytics"
-version = "0.1.8"
+version = "0.1.9"
 description = "The detailed analysis tool for git repositories."
-authors = ["n0rfas <antsa@yandex.ru>"]
+authors = ["n0rfas <n0rfas@protonmail.com>"]
 license = "MIT"
 readme = "README.md"
+keywords = "git,analytics,repository"
+home-page = "https://git-analytics.com"
+project-url = "https://github.com/n0rfas/git-analytics"
 packages = [{include = "git_analytics"}]
 
 [tool.poetry.dependencies]
