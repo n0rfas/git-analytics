@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import date
+from typing import Optional, Set
 
 from git_analytics.entities import AnalyticsCommit, AnalyticsResult
 from git_analytics.interfaces import CommitAnalyzer
@@ -17,10 +18,10 @@ class CommitsSummaryAnalyzer(CommitAnalyzer):
     name = "commits_summary"
 
     def __init__(self) -> None:
-        self._date_first_commit = None
-        self._date_last_commit = None
-        self._total_number_commit = 0
-        self._list_authors = set()
+        self._date_first_commit: Optional[date] = None
+        self._date_last_commit: Optional[date] = None
+        self._total_number_commit: int = 0
+        self._list_authors: Set = set()
 
     def process(self, commit: AnalyticsCommit) -> None:
         if (
