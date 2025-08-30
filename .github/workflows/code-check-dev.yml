@@ -1,0 +1,56 @@
+name: code quality check (dev)
+
+on: 
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ dev]
+
+jobs:
+
+  linter:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.7
+      - run: pipx install "poetry~=2.0.0"
+      - run: poetry install --with dev
+      - run: poetry run ruff check --select I .
+      - run: poetry run ruff check .
+
+  typing:
+    needs: [ linter ]
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.7
+      - run: pipx install "poetry~=2.0.0"
+      - run: poetry install --with dev
+      - run: poetry run ruff check --select I .
+      - run: poetry run mypy .
+
+  tests:
+    needs: [ typing, linter ]
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.7
+      - run: pipx install "poetry~=2.0.0"
+      - run: poetry install --with dev
+      - run: poetry run ruff check --select I .
+      - run: poetry run pytest --cov=git_analytics --cov-report=term-missing --cov-fail-under=30

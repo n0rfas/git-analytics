@@ -17,6 +17,7 @@ falcon = "~=3.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4"
+pytest-cov = "^4.1"
 mypy = "^1.4"
 ruff = "^0.12"
 
@@ -26,3 +27,6 @@ git-analytics = 'git_analytics.main:run'
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120

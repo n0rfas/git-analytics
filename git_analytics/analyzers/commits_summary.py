@@ -8,39 +8,28 @@ from git_analytics.interfaces import CommitAnalyzer
 
 @dataclass
 class Result(AnalyticsResult):
-    date_first_commit: date
-    date_last_commit: date
-    total_number_commit: int
-    total_number_authors: int
+    date_first_commit: Optional[date] = None
+    date_last_commit: Optional[date] = None
+    total_number_commit: int = 0
+    total_number_authors: int = 0
 
 
 class CommitsSummaryAnalyzer(CommitAnalyzer):
     name = "commits_summary"
 
     def __init__(self) -> None:
-        self._date_first_commit: Optional[date] = None
-        self._date_last_commit: Optional[date] = None
-        self._total_number_commit: int = 0
-        self._list_authors: Set = set()
+        self._result = Result()
+        self._authors: Set[str] = set()
 
     def process(self, commit: AnalyticsCommit) -> None:
-        if (
-            self._date_first_commit is None
-            or commit.committed_datetime < self._date_first_commit
-        ):
-            self._date_first_commit = commit.committed_datetime
-        if (
-            self._date_last_commit is None
-            or commit.committed_datetime > self._date_last_commit
-        ):
-            self._date_last_commit = commit.committed_datetime
-        self._total_number_commit += 1
-        self._list_authors.add(commit.commit_author)
+        dt = commit.committed_datetime.date()
+        if self._result.date_first_commit is None or dt < self._result.date_first_commit:
+            self._result.date_first_commit = dt
+        if self._result.date_last_commit is None or dt > self._result.date_last_commit:
+            self._result.date_last_commit = dt
+        self._result.total_number_commit += 1
+        self._authors.add(commit.commit_author)
 
     def result(self) -> Result:
-        return Result(
-            date_first_commit=self._date_first_commit.date(),
-            date_last_commit=self._date_last_commit.date(),
-            total_number_commit=self._total_number_commit,
-            total_number_authors=len(self._list_authors),
-        )
+        self._result.total_number_authors = len(self._authors)
+        return self._result

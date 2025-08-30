@@ -2,7 +2,10 @@ __pycache__
 .DS_Store
 .vscode
 .venv
+.coverage
 *.egg-info
+htmlcov/
 build/
 dist/
 poetry.lock
+coverage.xml
