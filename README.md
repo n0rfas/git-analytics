@@ -44,6 +44,7 @@ poetry run git-analytics
 
 ```bash
 poetry run pytest
+poetry run pytest --cov=git_analytics --cov-report=term-missing       
 ```
 
 ### Type Checking
