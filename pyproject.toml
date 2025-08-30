@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "git-analytics"
 version = "0.1.9"
-description = "The detailed analysis tool for git repositories."
+description = "Advanced analytics for Git repositories — commits, authors, code churn, lines of code, trends, and visual dashboards."
 authors = ["n0rfas <n0rfas@protonmail.com>"]
 license = "MIT"
 readme = "README.md"
-keywords = "git,statistics,analytics,git-statistics,git-status,git-analysis,git-stats,git-analytics,git-analyze"
-home-page = "https://git-analytics.com"
-project-url = "https://github.com/n0rfas/git-analytics"
+homepage = "https://git-analytics.com"
+repository = "https://github.com/n0rfas/git-analytics"
+keywords = ["git", "git-statistics", "git-status", "code-metrics", "lines-of-code", "commit-history", "git-analysis", "git-metrics", "git-commits", "repo-stats git-stats", "repository-metrics", "developer-metrics", "git-analytics code-statistics", "commit-analysis", "git-analyze", "git-insights", "repo-analysis", "git-repo-stats"]
 packages = [{include = "git_analytics"}]
 
 [tool.poetry.dependencies]
