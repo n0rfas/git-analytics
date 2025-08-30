@@ -10,9 +10,6 @@ jobs:
 
   linter:
     runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -26,9 +23,6 @@ jobs:
   typing:
     needs: [ linter ]
     runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -42,9 +36,6 @@ jobs:
   tests:
     needs: [ typing, linter ]
     runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
