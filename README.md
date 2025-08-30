@@ -1,5 +1,10 @@
 # Git-Analytics
 
+[![PyPI](https://img.shields.io/pypi/v/git-analytics.svg)](https://pypi.org/project/git-analytics/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/git-analytics.svg)](https://pypi.org/project/git-analytics/)
+[![code quality check](https://github.com/n0rfas/git-analytics/actions/workflows/code-check-dev.yml/badge.svg?branch=dev)](https://github.com/n0rfas/git-analytics/tree/dev)
+[![python versions check](https://github.com/n0rfas/git-analytics/actions/workflows/python-matrix-main.yml/badge.svg?branch=main)](https://github.com/n0rfas/git-analytics/tree/main)
+
 The detailed analysis tool for git repositories.
 
 ## Installation

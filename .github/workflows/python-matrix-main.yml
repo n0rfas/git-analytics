@@ -1,4 +1,4 @@
-name: python version compatibility check (main)
+name: python versions compatibility check (main)
 
 on:
   push:
