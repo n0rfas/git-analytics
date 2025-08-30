@@ -10,12 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version:3.7
+          python-version:3.13
       - run: pipx install "poetry~=2.1.0"
       - run: poetry install --with dev
       - run: poetry run ruff check --select I .
@@ -26,12 +26,12 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version:3.7
+          python-version:3.13
       - run: pipx install "poetry~=2.1.0"
       - run: poetry install --with dev
       - run: poetry run ruff check --select I .
@@ -42,12 +42,12 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version:3.7
+          python-version:3.13
       - run: pipx install "poetry~=2.1.0"
       - run: poetry install --with dev
       - run: poetry run ruff check --select I .
