@@ -1,4 +1,5 @@
 from typing import Iterator, List
+
 from git_analytics.entities import AnalyticsCommit
 from git_analytics.interfaces import CommitSource
 

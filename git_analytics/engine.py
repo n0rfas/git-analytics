@@ -1,8 +1,8 @@
 from datetime import date, timezone
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from git_analytics.entities import AnalyticsResult
-from git_analytics.interfaces import CommitAnalyzer, CommitSource
+from git_analytics.interfaces import CommitSource
 
 
 class CommitAnalyticsEngine:

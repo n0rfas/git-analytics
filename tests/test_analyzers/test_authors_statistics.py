@@ -1,8 +1,7 @@
-from git_analytics.analyzers.authors_statistics import AuthorsStatisticsAnalyzer
-from git_analytics.engine import CommitAnalyticsEngine
-
 from fake_commit_source import FakeCommitSource
 from fake_data import FAKE_COMMITS
+
+from git_analytics.analyzers.authors_statistics import AuthorsStatisticsAnalyzer
 
 
 def test_first():
