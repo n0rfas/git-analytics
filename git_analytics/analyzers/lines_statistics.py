@@ -1,7 +1,6 @@
-from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date
-from typing import List
+from typing import Dict, List
 
 from git_analytics.entities import AnalyticsCommit, AnalyticsResult
 from git_analytics.interfaces import CommitAnalyzer
@@ -22,27 +21,17 @@ class LinesAnalyzer(CommitAnalyzer):
     name = "lines_statistics"
 
     def __init__(self) -> None:
-        self._lines_in_day = {}
+        self._daily_delta: Dict[date, int] = {}
 
     def process(self, commit: AnalyticsCommit) -> None:
-        self._lines_in_day[commit.committed_datetime] = (
-            commit.lines_insertions - commit.lines_deletions
-        )
+        d = commit.committed_datetime.date()
+        delta = commit.lines_insertions - commit.lines_deletions
+        self._daily_delta[d] = self._daily_delta.get(d, 0) + delta
 
     def result(self) -> Result:
-        dict_number_lines = defaultdict(int)
-
-        old_rows = 0
-        sort_day = list(self._lines_in_day.keys())
-        sort_day.sort()
-        for day in sort_day:
-            number_rows = self._lines_in_day[day]
-            dict_number_lines[day] = old_rows + number_rows
-            old_rows = old_rows + number_rows
-
-        return Result(
-            items=[
-                LinesStatistics(date=day.date(), lines=lines)
-                for day, lines in dict_number_lines.items()
-            ]
-        )
+        items: List[LinesStatistics] = []
+        total = 0
+        for d in sorted(self._daily_delta.keys()):
+            total += self._daily_delta[d]
+            items.append(LinesStatistics(date=d, lines=total))
+        return Result(items=items)

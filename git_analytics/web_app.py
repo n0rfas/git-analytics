@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-import falcon
+import falcon  # type: ignore
 
 from git_analytics.engine import CommitAnalyticsEngine
 
@@ -18,12 +18,8 @@ class GitAnalyticsResource:
         stop_str = req.get_param("stop_date")
 
         try:
-            start_date = (
-                datetime.strptime(start_str, "%Y-%m-%d").date() if start_str else None
-            )
-            stop_date = (
-                datetime.strptime(stop_str, "%Y-%m-%d").date() if stop_str else None
-            )
+            start_date = datetime.strptime(start_str, "%Y-%m-%d").date() if start_str else None
+            stop_date = datetime.strptime(stop_str, "%Y-%m-%d").date() if stop_str else None
         except ValueError:
             raise falcon.HTTPBadRequest("Invalid date format", "Use YYYY-MM-DD")
 
