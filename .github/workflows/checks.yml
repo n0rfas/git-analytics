@@ -7,7 +7,7 @@ on:
 jobs:
 
   linter:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: .
@@ -23,7 +23,7 @@ jobs:
 
   typing:
     needs: [ linter ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: .
@@ -39,7 +39,7 @@ jobs:
 
   tests:
     needs: [ typing, linter ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: .
