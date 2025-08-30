@@ -2,7 +2,7 @@ name: actions
 
 on: 
   push:
-    branches: [ develop ]
+    branches: [ dev ]
 
 jobs:
 
