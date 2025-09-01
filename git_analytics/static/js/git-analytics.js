@@ -392,7 +392,11 @@ async function fetchStatistics() {
 
   document.addEventListener("DOMContentLoaded", async () => {
     try {
+      const modalEl = document.getElementById("loadingModal");
+      const modal = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
+      modal.show();
       const stats = await fetchStatistics();
+      modal.hide();
       const authorsData = stats.authors_statistics.authors;
       renderSummary(stats);
       buildAuthorsChart(authorsData);
