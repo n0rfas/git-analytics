@@ -22,6 +22,27 @@
                     GitHub
                 </a>
             </div>
+            <!-- Правый блок навбара -->
+            <div class="d-flex align-items-center gap-2">
+            <!-- Кнопки справа у тебя уже есть ... -->
+                <!-- Dropdown выбора периода -->
+                <div class="dropdown">
+                    <button class="btn btn-warning dropdown-toggle" type="button"
+                            id="rangeDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                    Last month
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="rangeDropdownBtn" id="rangeMenu">
+                    <li><a class="dropdown-item" href="#" data-type="days" data-value="7">Last week</a></li>
+                    <li><a class="dropdown-item" href="#" data-type="days" data-value="14">Last 2 weeks</a></li>
+                    <li><a class="dropdown-item" href="#" data-type="months" data-value="1">Last month</a></li>
+                    <li><a class="dropdown-item" href="#" data-type="months" data-value="3">Last 3 months</a></li>
+                    <li><a class="dropdown-item" href="#" data-type="months" data-value="6">Last 6 months</a></li>
+                    <li><a class="dropdown-item" href="#" data-type="months" data-value="12">Last year</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" data-type="all" data-value="all">All the time</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </header>
     <main class="flex-grow-1">
