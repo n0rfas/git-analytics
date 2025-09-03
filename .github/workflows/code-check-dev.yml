@@ -44,4 +44,4 @@ jobs:
       - run: pipx install "poetry~=2.0.0"
       - run: poetry install --with dev
       - run: poetry run ruff check --select I .
-      - run: poetry run pytest --cov=git_analytics --cov-report=term-missing --cov-fail-under=30
+      - run: poetry run pytest --cov=git_analytics --cov-report=term-missing --cov-fail-under=40

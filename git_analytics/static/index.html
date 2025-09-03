@@ -22,6 +22,27 @@
                     GitHub
                 </a>
             </div>
+            <!-- Правый блок навбара -->
+            <div class="d-flex align-items-center gap-2">
+            <!-- Кнопки справа у тебя уже есть ... -->
+                <!-- Dropdown выбора периода -->
+                <div class="dropdown">
+                    <button class="btn btn-warning dropdown-toggle" type="button"
+                            id="rangeDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                    Last month
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="rangeDropdownBtn" id="rangeMenu">
+                    <li><a class="dropdown-item" href="#" data-type="days" data-value="7">Last week</a></li>
+                    <li><a class="dropdown-item" href="#" data-type="days" data-value="14">Last 2 weeks</a></li>
+                    <li><a class="dropdown-item" href="#" data-type="months" data-value="1">Last month</a></li>
+                    <li><a class="dropdown-item" href="#" data-type="months" data-value="3">Last 3 months</a></li>
+                    <li><a class="dropdown-item" href="#" data-type="months" data-value="6">Last 6 months</a></li>
+                    <li><a class="dropdown-item" href="#" data-type="months" data-value="12">Last year</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" data-type="all" data-value="all">All the time</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </header>
     <main class="flex-grow-1">
@@ -98,7 +119,7 @@
                 <div class="col-md-12">
                     <div class="card h-100 w-100">
                         <div class="card-header">
-                            Commit by day of week
+                            Commit by day of month
                         </div>
                         <div class="card-body">
                             <canvas id="chartMonth"></canvas>
@@ -162,7 +183,7 @@
     </main>
     <footer class="bg-dark text-white py-3 mt-auto">
         <div class="container">
-            <span>&copy; 2025 ver 0.1.9</span>
+            <span>&copy; 2025 ver 0.1.10</span>
         </div>
     </footer>
     <script src="js/bootstrap.bundle.min.js"></script>
@@ -170,7 +191,7 @@
     <script src="js/git-analytics.js"></script>
     
     <!-- Loading Modal -->
-    <div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal" id="loadingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-center">
                 <div class="modal-body">

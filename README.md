@@ -49,7 +49,7 @@ poetry run git-analytics
 
 ```bash
 poetry run pytest
-poetry run pytest --cov=git_analytics --cov-report=term-missing --cov-fail-under=30
+poetry run pytest --cov=git_analytics --cov-report=term-missing --cov-fail-under=40
 ```
 
 ### Type Checking

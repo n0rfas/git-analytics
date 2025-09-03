@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "git-analytics"
-version = "0.1.9"
+version = "0.1.10"
 description = "Advanced analytics for Git repositories — commits, authors, code churn, lines of code, trends, and visual dashboards."
 authors = ["n0rfas <n0rfas@protonmail.com>"]
 license = "MIT"
@@ -20,6 +20,7 @@ pytest = "^7.4"
 pytest-cov = "^4.1"
 mypy = "^1.4"
 ruff = "^0.12"
+freezegun= "^1.5"
 
 [tool.poetry.scripts]
 git-analytics = 'git_analytics.main:run'
