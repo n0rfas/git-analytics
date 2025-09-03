@@ -1,11 +1,13 @@
-function formatDate(d) {
+const CHARTS = Object.create(null);
+
+function toISODate(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
 
-function subtractMonths(date, n) {
+function subMonths(date, n) {
   const d = new Date(date);
   const origDay = d.getDate();
   d.setDate(1);
@@ -15,36 +17,43 @@ function subtractMonths(date, n) {
   return d;
 }
 
-function buildQueryForRange(range) {
-  if (range === 'all') return '';
+function computeRange(type, value) {
+  if (type === "all") return null;
 
-  const days = Number(range);
-  const now = new Date();
-  const stop = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  const start = new Date(stop);
-  start.setUTCDate(start.getUTCDate() - days);
+  const today = new Date();
+  let start, stop;
 
-  const params = new URLSearchParams({
-    start_date: formatDateUTC_YYYYMMDD(start),
-    stop_date:  formatDateUTC_YYYYMMDD(stop),
-  });
-  return `?${params.toString()}`;
+  if (type === "days") {
+    stop = today;
+    start = new Date(today);
+    start.setDate(start.getDate() - Number(value));
+  } else if (type === "months") {
+    stop = today;
+    start = subMonths(today, Number(value));
+  }
+
+  return { start: toISODate(start), stop: toISODate(stop) };
 }
 
-async function fetchStatisticsWithRange(range) {
-  const qs = buildQueryForRange(range);
-  const res = await fetch(`/api/statistics${qs}`);
-  if (!res.ok) throw new Error('Failed to fetch /api/statistics');
-  return await res.json();
+async function fetchStatistics(type, value) {
+  const range = computeRange(type, value);
+  let url = "/api/statistics";
+  if (range) {
+    url += `?start_date=${range.start}&stop_date=${range.stop}`;
+  }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch statistics");
+  const data = await res.json();
+  return data;
 }
 
-async function loadAndRender(range) {
+async function loadAndRender(type, value) {
   try {
     // fetch stats
     const modalEl = document.getElementById("loadingModal");
     const modal = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
     modal.show();  
-    const stats = await fetchStatisticsWithRange(range);
+    const stats = await fetchStatistics(type, value);
     modal.hide();
 
     // render stats
@@ -80,13 +89,21 @@ function renderSummary(stats) {
   `;
 }
 
+function renderChart(id, config) {
+  if (CHARTS[id]) {
+    CHARTS[id].destroy();
+  }
+  const ctx = document.getElementById(id).getContext("2d");
+  CHARTS[id] = new Chart(ctx, config);
+}
+
 function buildAuthorsChart(authorsData) {
   const labels = Object.keys(authorsData);
   const dataValues = Object.values(authorsData).map(a => a.commits);
 
   const ctx = document.getElementById("chartAuthors").getContext("2d");
 
-  new Chart(ctx, {
+  renderChart("chartAuthors", {
     type: "pie",
     data: {
       labels: labels,
@@ -109,7 +126,7 @@ function buildAuthorsStackedChart(authorsData) {
 
   const ctx = document.getElementById("chartAuthors2").getContext("2d");
 
-  new Chart(ctx, {
+  renderChart("chartAuthors2", {
     type: "bar",
     data: {
       labels,
@@ -172,7 +189,8 @@ function buildHourByAuthorChart(hourOfDayData) {
   
   if (authors.size === 0) {
     const totals = HOUR_LABELS.map(h => hourOfDayData[h] ?? 0);
-    new Chart(ctx, {
+
+    renderChart("chartDay", {
       type: "bar",
       data: { labels: HOUR_LABELS, datasets: [{ label: "Total", data: totals, stack: "commits", borderWidth: 1 }] },
       options: {
@@ -198,7 +216,7 @@ function buildHourByAuthorChart(hourOfDayData) {
     borderWidth: 1
   }));
 
-  new Chart(ctx, {
+  renderChart("chartDay", {
     type: "bar",
     data: { labels: HOUR_LABELS, datasets },
     options: {
@@ -231,7 +249,7 @@ function buildWeekByAuthorChart(dayOfWeekData) {
 
   if (authors.size === 0) {
     const totals = WEEK_LABELS.map(d => dayOfWeekData[d] ?? 0);
-    new Chart(ctx, {
+    renderChart("chartWeek", {
       type: "bar",
       data: {
         labels: WEEK_LABELS,
@@ -259,7 +277,7 @@ function buildWeekByAuthorChart(dayOfWeekData) {
     stack: "commits"
   }));
 
-  new Chart(ctx, {
+  renderChart("chartWeek", {
     type: "bar",
     data: { labels: WEEK_LABELS, datasets },
     options: {
@@ -292,7 +310,7 @@ function buildDayOfMonthByAuthorChart(dayOfMonthData) {
 
   if (authors.size === 0) {
     const totals = DAY_LABELS.map(d => dayOfMonthData[d] ?? 0);
-    new Chart(ctx, {
+    renderChart("chartMonth", {
       type: "bar",
       data: { labels: DAY_LABELS, datasets: [{ label: "Total", data: totals, stack: "commits", borderWidth: 1 }] },
       options: {
@@ -320,7 +338,7 @@ function buildDayOfMonthByAuthorChart(dayOfMonthData) {
     borderWidth: 1
   }));
 
-  new Chart(ctx, {
+  renderChart("chartMonth", {
     type: "bar",
     data: { labels: DAY_LABELS, datasets },
     options: {
@@ -348,7 +366,7 @@ function buildLinesChart(linesItems) {
 
   const ctx = document.getElementById("chartLines").getContext("2d");
 
-  new Chart(ctx, {
+  renderChart("chartLines", {
     type: "line",
     data: {
       labels,
@@ -401,7 +419,7 @@ function buildCommitTypeChart(commitTypeData) {
     stack: "commitTypes"
   }));
 
-  new Chart(ctx, {
+  renderChart("typesCommits", {
     type: "bar",
     data: {
       labels: dates,
@@ -448,20 +466,19 @@ function buildAuthorsTable(authorsData) {
 }
 
 // start
-document.addEventListener('DOMContentLoaded', () => {
-  const menu = document.getElementById('rangeMenu');
-  const btn  = document.getElementById('rangeDropdownBtn');
+document.addEventListener("DOMContentLoaded", () => {
+  const menu = document.getElementById("rangeMenu");
+  const btn = document.getElementById("rangeDropdownBtn");
 
-  const DEFAULT_RANGE = '30';
-  loadAndRender(DEFAULT_RANGE);
+  loadAndRender("months", 1);
 
-  menu.addEventListener('click', (e) => {
-    const item = e.target.closest('.dropdown-item');
+  menu.addEventListener("click", (e) => {
+    const item = e.target.closest(".dropdown-item");
     if (!item) return;
     e.preventDefault();
-
-    const range = item.dataset.range;
-    btn.textContent = item.textContent;
-    loadAndRender(range);
+    const type = item.dataset.type;
+    const value = item.dataset.value;
+    btn.textContent = item.textContent.trim();
+    loadAndRender(type, value);
   });
 });
