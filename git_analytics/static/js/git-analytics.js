@@ -47,7 +47,7 @@ async function fetchStatistics(type, value) {
   return data;
 }
 
-async function loadAndRender(type, value) {
+async function loadAndRender(type, value, label) {
   try {
     // fetch stats
     const modalEl = document.getElementById("loadingModal");
@@ -57,7 +57,7 @@ async function loadAndRender(type, value) {
     modal.hide();
 
     // render stats
-    renderSummary(stats);
+    renderSummary(stats, label);
     buildAuthorsChart(stats.authors_statistics.authors);
     buildAuthorsStackedChart(stats.authors_statistics.authors);
     buildHourByAuthorChart(stats.historical_statistics.hour_of_day);
@@ -72,7 +72,7 @@ async function loadAndRender(type, value) {
   }
 }
 
-function renderSummary(stats) {
+function renderSummary(stats, rangeLabel) {
   const s = stats.commits_summary;
   if (!s) return;
 
@@ -81,6 +81,7 @@ function renderSummary(stats) {
 
   summaryEl.innerHTML = `
       <div>
+        <strong>Statistics for:</strong> ${rangeLabel.toLowerCase()}<br>
         <strong>Total number of authors:</strong> ${s.total_number_authors}<br>
         <strong>Total number of commits:</strong> ${s.total_number_commit}<br>
         <strong>Date of the first commit:</strong> ${s.date_first_commit}<br>
@@ -470,7 +471,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const menu = document.getElementById("rangeMenu");
   const btn = document.getElementById("rangeDropdownBtn");
 
-  loadAndRender("months", 1);
+  loadAndRender("months", 1, "Last month");
 
   menu.addEventListener("click", (e) => {
     const item = e.target.closest(".dropdown-item");
@@ -478,7 +479,8 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const type = item.dataset.type;
     const value = item.dataset.value;
+    const label = item.textContent.trim();
     btn.textContent = item.textContent.trim();
-    loadAndRender(type, value);
+    loadAndRender(type, value, label);
   });
 });
