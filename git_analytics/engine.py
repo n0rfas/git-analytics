@@ -20,13 +20,19 @@ class CommitAnalyticsEngine:
         stop_date: Optional[date] = None,
     ) -> Dict[str, AnalyticsResult]:
         analyzers = self._analyzers_factory()
+
+        if start_date and stop_date and start_date > stop_date:
+            start_date, stop_date = stop_date, start_date
+
         for commit in self._source.iter_commits():
-            if start_date and stop_date:
-                commit_day = commit.committed_datetime.astimezone(timezone.utc).date()
-                if commit_day < start_date:
-                    break
-                if stop_date > commit_day:
-                    continue
+            commit_day = commit.committed_datetime.astimezone(timezone.utc).date()
+
+            if stop_date and commit_day > stop_date:
+                continue
+
+            if start_date and commit_day < start_date:
+                break
+
             for analyzer in analyzers:
                 analyzer.process(commit)
 
