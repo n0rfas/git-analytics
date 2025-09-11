@@ -31,3 +31,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 120
+
+[tool.mypy]
+explicit_package_bases = true

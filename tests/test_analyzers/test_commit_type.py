@@ -1,6 +1,6 @@
-import pytest
-
 from datetime import date
+
+import pytest
 
 from git_analytics.analyzers.commit_type import CommitTypeAnalyzer, _get_type_list
 from tests.fakes import FAKE_COMMITS, FakeCommitSource
