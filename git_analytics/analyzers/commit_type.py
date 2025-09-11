@@ -23,17 +23,19 @@ class CommitType(Enum):
 
 @dataclass
 class Result(AnalyticsResult):
-    items: Dict[date, Dict[CommitType, int]]
+    timeseries: Dict[date, Dict[CommitType, int]]
+    total_counter: Counter
+    author_total_counter: Dict[str, Counter]
 
 
 TYPE_COMMIT_LIST: tuple = tuple(ct.value for ct in CommitType)
 
 
 def _get_type_list(commit_message: str):
-    result = [tag for tag in TYPE_COMMIT_LIST if tag in commit_message]
+    result = [tag for tag in TYPE_COMMIT_LIST if tag in commit_message.lower()]
     if result:
         return result
-    return [CommitType.UNKNOWN]
+    return [CommitType.UNKNOWN.value]
 
 
 class CommitTypeAnalyzer(CommitAnalyzer):
@@ -41,12 +43,20 @@ class CommitTypeAnalyzer(CommitAnalyzer):
 
     def __init__(self) -> None:
         self._by_date: Dict[date, Counter] = defaultdict(Counter)
+        self._total_counter: Counter = Counter()
+        self._author_total_counter: Dict[str, Counter] = defaultdict(Counter)
 
     def process(self, commit: AnalyticsCommit) -> None:
         commit_date = commit.committed_datetime.date()
         commit_types = _get_type_list(commit.message)
         for commit_type in commit_types:
             self._by_date[commit_date][commit_type] += 1
+            self._total_counter[commit_type] += 1
+            self._author_total_counter[commit.commit_author][commit_type] += 1
 
     def result(self) -> Result:
-        return Result(items={dt: dict(counter) for dt, counter in self._by_date.items()})
+        return Result(
+            timeseries={dt: dict(counter) for dt, counter in self._by_date.items()},
+            total_counter=self._total_counter,
+            author_total_counter=self._author_total_counter,
+        )
