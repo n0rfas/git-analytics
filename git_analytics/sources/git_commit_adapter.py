@@ -3,7 +3,7 @@ from typing import Iterator
 from git import Repo
 from git.objects import Commit
 
-from git_analytics.entities import AnalyticsCommit
+from git_analytics.entities import AnalyticsCommit, FileChangeStats
 from git_analytics.interfaces import CommitSource
 
 
@@ -25,4 +25,8 @@ class GitCommitSource(CommitSource):
             lines_deletions=commit.stats.total["deletions"],
             files_changed=commit.stats.total["files"],
             message=str(commit.summary).strip(),
+            files={
+                str(file): FileChangeStats(insertions=value.get("insertions", 0), deletions=value.get("deletions", 0))
+                for file, value in commit.stats.files.items()
+            },
         )

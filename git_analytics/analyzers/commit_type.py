@@ -24,8 +24,8 @@ class CommitType(Enum):
 @dataclass
 class Result(AnalyticsResult):
     timeseries: Dict[date, Dict[CommitType, int]]
-    total_counter: Counter
-    author_total_counter: Dict[str, Counter]
+    total_counter: Dict[CommitType, int]
+    author_total_counter: Dict[str, Dict[CommitType, int]]
 
 
 TYPE_COMMIT_LIST: tuple = tuple(ct.value for ct in CommitType)
@@ -57,6 +57,6 @@ class CommitTypeAnalyzer(CommitAnalyzer):
     def result(self) -> Result:
         return Result(
             timeseries={dt: dict(counter) for dt, counter in self._by_date.items()},
-            total_counter=self._total_counter,
-            author_total_counter=self._author_total_counter,
+            author_total_counter={author: dict(counter) for author, counter in self._author_total_counter.items()},
+            total_counter=dict(self._total_counter),
         )

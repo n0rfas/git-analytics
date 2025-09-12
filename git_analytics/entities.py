@@ -6,6 +6,12 @@ from typing import Any, Dict
 
 
 @dataclass
+class FileChangeStats:
+    insertions: int
+    deletions: int
+
+
+@dataclass
 class AnalyticsCommit:
     sha: str
     commit_author: str
@@ -14,6 +20,7 @@ class AnalyticsCommit:
     lines_deletions: int
     files_changed: int
     message: str
+    files: Dict[str, FileChangeStats]
 
 
 @dataclass

@@ -7,6 +7,7 @@ from git_analytics.analyzers import (
     CommitsSummaryAnalyzer,
     CommitTypeAnalyzer,
     HistoricalStatisticsAnalyzer,
+    LanguageAnalyzer,
     LinesAnalyzer,
 )
 from git_analytics.engine import CommitAnalyticsEngine
@@ -20,6 +21,7 @@ def make_analyzers():
         CommitsSummaryAnalyzer(),
         CommitTypeAnalyzer(),
         HistoricalStatisticsAnalyzer(),
+        LanguageAnalyzer(),
         LinesAnalyzer(),
     ]
 

@@ -64,7 +64,7 @@ async function loadAndRender(type, value, label) {
     buildWeekByAuthorChart(stats.historical_statistics.day_of_week);
     buildDayOfMonthByAuthorChart(stats.historical_statistics.day_of_month);
     buildLinesChart(stats.lines_statistics.items);
-    buildCommitTypeChart(stats.commit_type.items);
+    buildCommitTypeChart(stats.commit_type.timeseries);
     buildAuthorsTable(stats.authors_statistics.authors);
 
   } catch (err) {
