@@ -29,6 +29,7 @@ def make_analyzers():
 def run():
     try:
         repo = Repo()
+        name_branch = repo.active_branch.name
     except InvalidGitRepositoryError:
         print("Error: Current directory is not a git repository.")
         return
@@ -36,6 +37,7 @@ def run():
     engine = CommitAnalyticsEngine(
         source=GitCommitSource(repo),
         analyzers_factory=make_analyzers,
+        additional_data={"name_branch": name_branch},
     )
 
     web_app = create_web_app(engine=engine)

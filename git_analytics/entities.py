@@ -25,7 +25,10 @@ class AnalyticsCommit:
 
 @dataclass
 class AnalyticsResult:
-    def to_dict(self) -> Dict[str, Any]:
+    def __iter__(self):
+        return iter(self._to_dict().items())
+
+    def _to_dict(self) -> Dict[str, Any]:
         return self._make_json_safe(asdict(self))
 
     @staticmethod

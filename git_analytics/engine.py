@@ -1,5 +1,5 @@
 from datetime import date, timezone
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from git_analytics.entities import AnalyticsResult
 from git_analytics.interfaces import CommitSource
@@ -10,9 +10,11 @@ class CommitAnalyticsEngine:
         self,
         source: CommitSource,
         analyzers_factory,
+        additional_data: Optional[Dict[str, Any]] = None,
     ) -> None:
         self._source = source
         self._analyzers_factory = analyzers_factory
+        self._additional_data = additional_data
 
     def run(
         self,
@@ -36,4 +38,7 @@ class CommitAnalyticsEngine:
             for analyzer in analyzers:
                 analyzer.process(commit)
 
-        return {analyzer.name: analyzer.result() for analyzer in analyzers}
+        result = {analyzer.name: analyzer.result() for analyzer in analyzers}
+        if self._additional_data:
+            result["additional_data"] = self._additional_data
+        return result
