@@ -1,5 +1,38 @@
 const CHARTS = Object.create(null);
 
+const authorColors = {};
+
+function getAuthorColor(author) {
+  if (!authorColors[author]) {
+    const index = Object.keys(authorColors).length % BOOTSTRAP_COLORS.length;
+    authorColors[author] = BOOTSTRAP_COLORS[index];
+  }
+  return authorColors[author];
+}
+
+const BOOTSTRAP_COLORS = [
+  "#74c0fc",
+  "#ced4da",
+  "#8ce99a",
+  "#ffa8a8",
+  "#ffe066",
+  "#66d9e8",
+  "#b197fc",
+  "#ffc078",
+  "#63e6be",
+  "#d0bfff",
+  "#faa2c1",
+  "#b2f2bb",
+  "#f783ac",
+  "#adb5bd",
+  "#f1f3f5",
+  "#868e96",
+  "#e9ecef",
+  "#495057",
+  "#a5d8ff",
+  "#ffd8a8" 
+];
+
 // main logic
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -34,16 +67,15 @@ async function loadAndRender(type, value, timeIntervalLabel) {
     renderWeeklyCommitTypes(stats.commit_type.commit_type_by_week);
     
     renderInsDelLinesByAuthors(stats.authors_statistics.authors);
-    renderCommitsByAuthor(stats.authors_statistics.authors);
     renderCodeChurnByAuthor(stats.authors_statistics.authors);
+    renderCommitsByAuthor(stats.authors_statistics.authors);
+    renderAuthorsContributionsTable(stats.authors_statistics.authors);
     
-    // buildHourByAuthorChart(stats.historical_statistics.hour_of_day);
-    // buildWeekByAuthorChart(stats.historical_statistics.day_of_week);
-    // buildDayOfMonthByAuthorChart(stats.historical_statistics.day_of_month);
-    // buildLinesChart(stats.lines_statistics.items);
+    buildHourByAuthorChart(stats.historical_statistics.hour_of_day);
+    buildWeekByAuthorChart(stats.historical_statistics.day_of_week);
+    buildDayOfMonthByAuthorChart(stats.historical_statistics.day_of_month);
     
-    // buildAuthorsTable(stats.authors_statistics.authors);
-
+    buildLinesOfCodeChart(stats.lines_statistics.items);
   } catch (err) {
     console.error("Error fetching stats:", err);
   }
@@ -145,6 +177,7 @@ function renderCommitsByAuthor(authorsData) {
       }]
     },
     options: {
+      backgroundColor: BOOTSTRAP_COLORS,
       responsive: true,
       plugins: { legend: { position: "bottom" } }
     }
@@ -164,6 +197,7 @@ function renderCodeChurnByAuthor(authorsData) {
       }]
     },
     options: {
+      backgroundColor: BOOTSTRAP_COLORS,
       responsive: true,
       plugins: { legend: { position: "bottom" } }
     }
@@ -186,13 +220,16 @@ function renderInsDelLinesByAuthors(authorsData) {
           label: "Insertions",
           data: insertions,
           borderWidth: 1,
-          stack: "lines"
+          stack: "lines",
+          backgroundColor: "#8ce99a"
+
         },
         {
           label: "Deletions",
           data: deletions,
           borderWidth: 1,
-          stack: "lines"
+          stack: "lines",
+          backgroundColor: "#f783ac"
         }
       ]
     },
@@ -224,26 +261,27 @@ function renderInsDelLinesByAuthors(authorsData) {
 }
 
 function buildHourByAuthorChart(hourOfDayData) {
-  
-  const HOUR_LABELS = Array.from({ length: 24 }, (_, i) => i.toString());
+  const HOUR_LABELS = Array.from({ length: 24 }, (_, i) => String(i));
 
   const authors = new Set();
-  for (const h of Object.keys(hourOfDayData)) {
-    const v = hourOfDayData[h];
-    if (v && typeof v === "object") {
-      Object.keys(v).forEach(a => authors.add(a));
-    }
+  for (const h of HOUR_LABELS) {
+    Object.keys(hourOfDayData[h] || {}).forEach(a => authors.add(a));
   }
 
-  const ctx = document.getElementById("chartDay").getContext("2d");
-
-  
   if (authors.size === 0) {
-    const totals = HOUR_LABELS.map(h => hourOfDayData[h] ?? 0);
+    const totals = HOUR_LABELS.map(h => {
+      const byAuthor = hourOfDayData[h] || {};
+      return Object.values(byAuthor).reduce((s, v) => s + v, 0);
+    });
 
     renderChart("chartDay", {
       type: "bar",
-      data: { labels: HOUR_LABELS, datasets: [{ label: "Total", data: totals, stack: "commits", borderWidth: 1 }] },
+      data: { labels: HOUR_LABELS, datasets: [{
+        label: "Total",
+        data: totals,
+        stack: "commits",
+        borderWidth: 1
+      }]},
       options: {
         responsive: true,
         plugins: {
@@ -253,7 +291,6 @@ function buildHourByAuthorChart(hourOfDayData) {
         scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } }
       }
     });
-    return;
   }
 
   
@@ -264,7 +301,8 @@ function buildHourByAuthorChart(hourOfDayData) {
       return v && typeof v === "object" ? (v[author] ?? 0) : (v ?? 0);
     }),
     stack: "commits",
-    borderWidth: 1
+    borderWidth: 1,
+    backgroundColor: getAuthorColor(author),
   }));
 
   renderChart("chartDay", {
@@ -289,43 +327,47 @@ function buildWeekByAuthorChart(dayOfWeekData) {
   const WEEK_LABELS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
   const authors = new Set();
-  for (const day of Object.keys(dayOfWeekData)) {
-    const v = dayOfWeekData[day];
-    if (v && typeof v === "object") {
-      Object.keys(v).forEach(a => authors.add(a));
-    }
+  for (const d of WEEK_LABELS) {
+    Object.keys(dayOfWeekData[d] || {}).forEach(a => authors.add(a));
   }
 
-  const ctx = document.getElementById("chartWeek").getContext("2d");
-
   if (authors.size === 0) {
-    const totals = WEEK_LABELS.map(d => dayOfWeekData[d] ?? 0);
+    const totals = WEEK_LABELS.map(d =>
+      Object.values(daydayOfWeekDataOfWeek[d] || {}).reduce((s, v) => s + v, 0)
+    );
+
     renderChart("chartWeek", {
       type: "bar",
       data: {
         labels: WEEK_LABELS,
-        datasets: [{ label: "Total", data: totals, borderWidth: 1, stack: "commits" }]
+        datasets: [{
+          label: "Total",
+          data: totals,
+          stack: "commits",
+          borderWidth: 1,
+        }]
       },
       options: {
         responsive: true,
         plugins: {
           legend: { position: "bottom" },
-          tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y}` } }
+          tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}` } }
         },
-        scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } }
+        scales: {
+          x: { stacked: true },
+          y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
+        }
       }
     });
     return;
   }
 
-  const datasets = Array.from(authors).map((author, idx) => ({
+  const datasets = Array.from(authors).map(author => ({
     label: author,
-    data: WEEK_LABELS.map(day => {
-      const v = dayOfWeekData[day];
-      return v && typeof v === "object" ? (v[author] ?? 0) : 0;
-    }),
+    data: WEEK_LABELS.map(d => (dayOfWeekData[d] && dayOfWeekData[d][author]) || 0),
+    stack: "commits",
     borderWidth: 1,
-    stack: "commits"
+    backgroundColor: getAuthorColor(author),
   }));
 
   renderChart("chartWeek", {
@@ -335,8 +377,11 @@ function buildWeekByAuthorChart(dayOfWeekData) {
       responsive: true,
       plugins: {
         legend: { position: "bottom" },
-        tooltip: { mode: "index", intersect: false,
-          callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y}` } }
+        tooltip: {
+          mode: "index",
+          intersect: false,
+          callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}` }
+        }
       },
       scales: {
         x: { stacked: true },
@@ -347,23 +392,29 @@ function buildWeekByAuthorChart(dayOfWeekData) {
 }
 
 function buildDayOfMonthByAuthorChart(dayOfMonthData) {
-  const DAY_LABELS = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+  const DAY_LABELS = Array.from({ length: 31 }, (_, i) => String(i + 1));
 
   const authors = new Set();
-  for (const d of Object.keys(dayOfMonthData)) {
-    const v = dayOfMonthData[d];
-    if (v && typeof v === "object") {
-      Object.keys(v).forEach(a => authors.add(a));
-    }
+  for (const d of DAY_LABELS) {
+    Object.keys(dayOfMonthData[d] || {}).forEach(a => authors.add(a));
   }
 
-  const ctx = document.getElementById("chartMonth").getContext("2d");
-
   if (authors.size === 0) {
-    const totals = DAY_LABELS.map(d => dayOfMonthData[d] ?? 0);
+    const totals = DAY_LABELS.map(d =>
+      Object.values(dayOfMonthData[d] || {}).reduce((s, v) => s + v, 0)
+    );
+
     renderChart("chartMonth", {
       type: "bar",
-      data: { labels: DAY_LABELS, datasets: [{ label: "Total", data: totals, stack: "commits", borderWidth: 1 }] },
+      data: {
+        labels: DAY_LABELS,
+        datasets: [{
+          label: "Total",
+          data: totals,
+          stack: "commits",
+          borderWidth: 1
+        }]
+      },
       options: {
         responsive: true,
         plugins: {
@@ -381,12 +432,10 @@ function buildDayOfMonthByAuthorChart(dayOfMonthData) {
 
   const datasets = Array.from(authors).map(author => ({
     label: author,
-    data: DAY_LABELS.map(d => {
-      const v = dayOfMonthData[d];
-      return v && typeof v === "object" ? (v[author] ?? 0) : (v ?? 0);
-    }),
+    data: DAY_LABELS.map(d => (dayOfMonthData[d] && dayOfMonthData[d][author]) || 0),
     stack: "commits",
-    borderWidth: 1
+    borderWidth: 1,
+    backgroundColor: getAuthorColor(author),
   }));
 
   renderChart("chartMonth", {
@@ -397,27 +446,26 @@ function buildDayOfMonthByAuthorChart(dayOfMonthData) {
       plugins: {
         legend: { position: "bottom" },
         tooltip: {
-          mode: "index", intersect: false,
+          mode: "index",
+          intersect: false,
           callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}` }
         }
       },
       scales: {
-        x: { stacked: true},
-        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 }}
+        x: { stacked: true, title: { display: true, text: "Day of Month" } },
+        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: "Commits" } }
       }
     }
   });
 }
 
-function buildLinesChart(linesItems) {
+function buildLinesOfCodeChart(linesItems) {
   const sorted = [...linesItems].sort((a, b) => a.date.localeCompare(b.date));
 
   const labels = sorted.map(p => p.date);
   const values = sorted.map(p => p.lines);
 
-  const ctx = document.getElementById("chartLines").getContext("2d");
-
-  renderChart("chartLines", {
+  renderChart("chartLinesOfCode", {
     type: "line",
     data: {
       labels,
@@ -461,11 +509,25 @@ function renderWeeklyCommitTypes(weeklyCommitTypesData) {
     Object.keys(weeklyCommitTypesData[date]).forEach(t => allCommitTypes.add(t));
   });
 
+  const COMMIT_TYPE_COLORS = {
+    feature: "#74c0fc",   // light blue
+    fix: "#ffa8a8",       // soft red
+    docs: "#ffd8a8",      // pastel peach
+    style: "#d0bfff",     // soft purple
+    refactor: "#ffc078",  // soft orange
+    test: "#8ce99a",      // soft green
+    chore: "#ced4da",     // light gray
+    wip: "#faa2c1",       // soft pink
+    merge: "#66d9e8",     // soft cyan
+    unknown: "#adb5bd"    // neutral gray
+  };
+
   const datasets = Array.from(allCommitTypes).map(type => ({
     label: type,
     data: weeks.map(week => weeklyCommitTypesData[week][type] ?? 0),
     stack: "commitTypes",
-    borderWidth: 1
+    borderWidth: 1,
+    backgroundColor: COMMIT_TYPE_COLORS[type] || "#dee2e6" 
   }));
 
   renderChart("weeklyCommitTypes", {
@@ -496,8 +558,8 @@ function renderWeeklyCommitTypes(weeklyCommitTypesData) {
   });
 }
 
-function buildAuthorsTable(authorsData) {
-  const tbody = document.getElementById("authorsTableBody");
+function renderAuthorsContributionsTable(authorsData) {
+  const tbody = document.getElementById("authorsContributionsTable");
   tbody.innerHTML = "";
 
   for (const [author, stats] of Object.entries(authorsData)) {
