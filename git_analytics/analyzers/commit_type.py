@@ -1,10 +1,10 @@
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from datetime import date
 from enum import Enum
-from typing import Dict
+from typing import Dict, List
 
 from git_analytics.entities import AnalyticsCommit, AnalyticsResult
+from git_analytics.helpers import get_number_week
 from git_analytics.interfaces import CommitAnalyzer
 
 
@@ -23,40 +23,49 @@ class CommitType(Enum):
 
 @dataclass
 class Result(AnalyticsResult):
-    timeseries: Dict[date, Dict[CommitType, int]]
-    total_counter: Dict[CommitType, int]
-    author_total_counter: Dict[str, Dict[CommitType, int]]
+    commit_type_by_week: Dict[str, Dict[str, int]]
+    commit_type_counter: Dict[str, int]
+    author_commit_type_by_week: Dict[str, Dict[str, Dict[str, int]]]
+    author_commit_type_counter: Dict[str, Dict[str, int]]
 
 
-TYPE_COMMIT_LIST: tuple = tuple(ct.value for ct in CommitType)
+LIST_OF_TYPE_COMMIT: List[str] = ["feature", "fix", "docs", "style", "refactor", "test", "chore", "wip", "merge"]
 
 
-def _get_type_list(commit_message: str):
-    result = [tag for tag in TYPE_COMMIT_LIST if tag in commit_message.lower()]
+def _get_type_list(commit_message: str) -> List[str]:
+    result = [tag for tag in LIST_OF_TYPE_COMMIT if tag in commit_message.lower()]
     if result:
         return result
-    return [CommitType.UNKNOWN.value]
+    return ["unknown"]
 
 
 class CommitTypeAnalyzer(CommitAnalyzer):
     name = "commit_type"
 
     def __init__(self) -> None:
-        self._by_date: Dict[date, Counter] = defaultdict(Counter)
-        self._total_counter: Counter = Counter()
-        self._author_total_counter: Dict[str, Counter] = defaultdict(Counter)
+        self._commit_type_by_week: Dict[str, Counter] = defaultdict(Counter)
+        self._commit_type_counter: Counter = Counter()
+        self._author_commit_type_by_week: Dict[str, Dict[str, Counter]] = defaultdict(lambda: defaultdict(Counter))
+        self._author_commit_type_counter: Dict[str, Counter] = defaultdict(Counter)
 
     def process(self, commit: AnalyticsCommit) -> None:
-        commit_date = commit.committed_datetime.date()
+        week_number = get_number_week(commit.committed_datetime)
         commit_types = _get_type_list(commit.message)
         for commit_type in commit_types:
-            self._by_date[commit_date][commit_type] += 1
-            self._total_counter[commit_type] += 1
-            self._author_total_counter[commit.commit_author][commit_type] += 1
+            self._commit_type_by_week[week_number][commit_type] += 1
+            self._commit_type_counter[commit_type] += 1
+            self._author_commit_type_by_week[commit.commit_author][week_number][commit_type] += 1
+            self._author_commit_type_counter[commit.commit_author][commit_type] += 1
 
     def result(self) -> Result:
         return Result(
-            timeseries={dt: dict(counter) for dt, counter in self._by_date.items()},
-            author_total_counter={author: dict(counter) for author, counter in self._author_total_counter.items()},
-            total_counter=dict(self._total_counter),
+            commit_type_by_week={wn: dict(sorted(c.items())) for wn, c in sorted(self._commit_type_by_week.items())},
+            commit_type_counter=dict(sorted(self._commit_type_counter.items())),
+            author_commit_type_by_week={
+                a: {wn: dict(sorted(c.items())) for wn, c in sorted(weeks.items())}
+                for a, weeks in sorted(self._author_commit_type_by_week.items())
+            },
+            author_commit_type_counter={
+                a: dict(sorted(c.items())) for a, c in sorted(self._author_commit_type_counter.items())
+            },
         )

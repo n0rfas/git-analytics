@@ -3,4 +3,6 @@ from typing import Union
 
 
 def get_number_week(dt: Union[date, datetime]) -> str:
-    return f"w{dt.isocalendar()[1]:02d}"
+    year = dt.year
+    week = dt.isocalendar()[1]
+    return f"{year}-W{week:02d}"  # ISO-8601 week number

@@ -6,10 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
+    <!-- top menu -->
     <header class="bg-dark text-white py-3">
-        <div class="container d-flex justify-content-between align-items-center">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
                 <img src="favicon.svg" alt="Logo" width="32" height="32" class="me-2">
                 <h1 class="h4 mb-0">Git-Analytics</h1>
@@ -22,10 +24,7 @@
                     GitHub
                 </a>
             </div>
-            <!-- Правый блок навбара -->
             <div class="d-flex align-items-center gap-2">
-            <!-- Кнопки справа у тебя уже есть ... -->
-                <!-- Dropdown выбора периода -->
                 <div class="dropdown">
                     <button class="btn btn-warning dropdown-toggle" type="button"
                             id="rangeDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
@@ -45,142 +44,86 @@
             </div>
         </div>
     </header>
-    <main class="flex-grow-1">
-        <div class="container">
-            <div class="row  mt-4">
-                <div class="col-md-4">
-                    <div class="card h-100 w-100">
-                        <div class="card-header">
-                            Common statistics
-                        </div>
-                        <div class="card-body">
-                            <span id="titleBranch"></span>
+    <div class="d-flex flex-grow-1">
+        <!-- sidebar -->
+        <aside class="sidebar bg-light border-end p-3">
+            <ul class="nav flex-column" id="sidebarNav">
+                <li class="nav-item"><a class="nav-link active" data-view="overview" href="#overview">Overview</a></li>
+                <li class="nav-item"><a class="nav-link" data-view="authors"  href="#authors">Authors</a></li>
+                <li class="nav-item"><a class="nav-link" data-view="commits"  href="#commits">Commits</a></li>
+                <li class="nav-item"><a class="nav-link" data-view="files"    href="#files">Files</a></li>
+            </ul>
+        </aside>
+        <!-- content -->
+        <main class="flex-grow-1 p-3">
+            <div class="container">
+            <section class="view" data-view="overview">
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <h2>Overview</h2>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card h-100 w-100">
+                            <div class="card-header">
+                                <span>Common statistics</span>
+                                <i class="bi bi-info-circle"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="right"
+                                    title="Here you can see overall repository statistics: total commits, authors, and time range.">
+                                </i>
+                            </div>
+                            <div class="card-body">
+                                <span id="titleBranch"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <h1 class="h3 mb-4">Statistics by Authors</h1>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="card h-100 w-100">
-                        <div class="card-header">
-                            Commit statistics by Authors
-                        </div>
-                        <div class="card-body">
-                            <canvas id="chartAuthors"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-8">
-                    <div class="card h-100 w-100">
-                        <div class="card-header">
-                            Code Lines Statistics by Authors
-                        </div>
-                        <div class="card-body">
-                            <canvas id="chartAuthors2"></canvas>
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card h-100 w-100">
+                            <div class="card-header">
+                                <span>Types of commits by date</span>
+                                <i class="bi bi-info-circle"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="right"
+                                    title="Here you can see overall repository statistics: total commits, authors, and time range.">
+                                </i>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="typesCommits"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <h1 class="h3 mb-4">Statistics by time</h1>
+            </section>
+            <section class="view d-none" data-view="authors">
+                <h2>Authors</h2>
+                <div class="card mb-3">
+                    <div class="card-header">Commits by author</div>
+                    <div class="card-body"><canvas id="authorsChart"></canvas></div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card h-100 w-100">
-                        <div class="card-header">
-                            Сommits by hour of the day
-                        </div>
-                        <div class="card-body">
-                            <canvas id="chartDay"></canvas>
-                        </div>
-                    </div>
+            </section>
+            <section class="view d-none" data-view="commits">
+                <h2>Commits</h2>
+                <div class="card mb-3">
+                    <div class="card-header">Per week</div>
+                    <div class="card-body"><canvas id="commitsChart"></canvas></div>
                 </div>
-            </div>
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <div class="card h-100 w-100">
-                        <div class="card-header">
-                            Commit by day of week
-                        </div>
-                        <div class="card-body">
-                            <canvas id="chartWeek"></canvas>
-                        </div>
-                    </div>
+            </section>
+
+            <section class="view d-none" data-view="files">
+                <h2>Files</h2>
+                <div class="card mb-3">
+                    <div class="card-header">Lines by extension</div>
+                    <div class="card-body"><canvas id="filesChart"></canvas></div>
                 </div>
+            </section>
             </div>
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <div class="card h-100 w-100">
-                        <div class="card-header">
-                            Commit by day of month
-                        </div>
-                        <div class="card-body">
-                            <canvas id="chartMonth"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <h1 class="h3 mb-4">Other statistics</h1>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card h-100 w-100">
-                        <div class="card-header">
-                            Number of lines of code
-                        </div>
-                        <div class="card-body">
-                            <canvas id="chartLines"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <div class="card h-100 w-100">
-                        <div class="card-header">
-                            Types of commits by date
-                        </div>
-                        <div class="card-body">
-                            <canvas id="typesCommits"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-4 mb-4">
-                <div class="col-md-12">
-                    <div class="card h-100 w-100">
-                        <div class="card-header">
-                            Number of lines of code
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Author</th>
-                                        <th scope="col">Commits</th>
-                                        <th scope="col">Insertions</th>
-                                        <th scope="col">Deletions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="authorsTableBody">
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+        </main>
+    </div>
+    <!-- footer -->
     <footer class="bg-dark text-white py-3 mt-auto">
         <div class="container">
             <span>&copy; 2025 ver 0.1.12</span>
@@ -189,6 +132,36 @@
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/chart.umd.min.js"></script>
     <script src="js/git-analytics.js"></script>
+    <script>
+        const views = document.querySelectorAll('.view');
+        const nav = document.getElementById('sidebarNav');
+        
+        function showView(name) {
+            nav.querySelectorAll('.nav-link').forEach(a => {
+            a.classList.toggle('active', a.dataset.view === name);
+            });
+            views.forEach(v => v.classList.toggle('d-none', v.dataset.view !== name));
+            if (!initedViews.has(name)) {
+            initViewCharts(name);
+            initedViews.add(name);
+            }
+        }
+
+        nav.addEventListener('click', (e) => {
+            const a = e.target.closest('.nav-link');
+            if (!a) return;
+            showView(a.dataset.view);
+        });
+
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
     
     <!-- Loading Modal -->
     <div class="modal" id="loadingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">

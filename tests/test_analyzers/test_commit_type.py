@@ -75,7 +75,7 @@ def test_commit_type_get_type_list(commit_message, expected_types):
     assert _get_type_list(commit_message) == expected_types
 
 
-def test_commit_type_timeseries():
+def test_commit_type_commit_type_by_week():
     source = FakeCommitSource(FAKE_COMMITS)
 
     analyzer = CommitTypeAnalyzer()
@@ -83,14 +83,14 @@ def test_commit_type_timeseries():
         analyzer.process(commit)
     result = analyzer.result()
 
-    assert len(result.timeseries) == 25
-    assert result.timeseries[date(2025, 5, 2)] == {"unknown": 1, "style": 1, "test": 1}
-    assert result.timeseries[date(2025, 4, 2)] == {"unknown": 2, "fix": 1}
-    assert result.timeseries[date(2025, 2, 2)] == {"chore": 1, "refactor": 1, "fix": 1}
-    assert result.timeseries[date(2025, 1, 2)] == {"unknown": 2}
-    assert result.timeseries[date(2025, 1, 1)] == {"unknown": 1}
-    assert result.timeseries[date(2024, 9, 2)] == {"unknown": 4, "fix": 1, "refactor": 1}
-    assert result.timeseries[date(2024, 1, 1)] == {"unknown": 4}
+    assert len(result.commit_type_by_week) == 11
+    assert result.timeseries["2025-W18"] == {"unknown": 1, "style": 1, "test": 1}
+    assert result.timeseries["2025-W14"] == {"unknown": 2, "fix": 1}
+    assert result.timeseries["2025-W05"] == {"chore": 1, "refactor": 1, "fix": 1}
+    assert result.timeseries["2025-W04"] == {"unknown": 2}
+    assert result.timeseries["2025-W22"] == {"unknown": 1}
+    assert result.timeseries["2024-W36"] == {"unknown": 4, "fix": 1, "refactor": 1}
+    assert result.timeseries["2024-W01"] == {"unknown": 4}
 
 
 def test_commit_type_total_counter():

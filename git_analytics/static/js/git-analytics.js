@@ -1,5 +1,67 @@
 const CHARTS = Object.create(null);
 
+// main logic
+
+document.addEventListener("DOMContentLoaded", () => {
+  const menu = document.getElementById("rangeMenu");
+  const btn = document.getElementById("rangeDropdownBtn");
+
+  loadAndRender("months", 1, "Last month");
+
+  menu.addEventListener("click", (e) => {
+    const item = e.target.closest(".dropdown-item");
+    if (!item) return;
+    e.preventDefault();
+    const type = item.dataset.type;
+    const value = item.dataset.value;
+    const label = item.textContent.trim();
+    btn.textContent = item.textContent.trim();
+    loadAndRender(type, value, label);
+  });
+});
+
+async function loadAndRender(type, value, label) {
+  try {
+    // fetch stats
+    const modalEl = document.getElementById("loadingModal");
+    const modal = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
+    modal.show();  
+    const stats = await fetchStatistics(type, value);
+    modal.hide();
+
+    // render stats
+    renderSummary(stats, label);
+    buildCommitTypeChart(stats.commit_type.commit_type_by_week);
+    
+
+    buildAuthorsChart(stats.authors_statistics.authors);
+    buildAuthorsStackedChart(stats.authors_statistics.authors);
+    buildHourByAuthorChart(stats.historical_statistics.hour_of_day);
+    buildWeekByAuthorChart(stats.historical_statistics.day_of_week);
+    buildDayOfMonthByAuthorChart(stats.historical_statistics.day_of_month);
+    buildLinesChart(stats.lines_statistics.items);
+    
+    buildAuthorsTable(stats.authors_statistics.authors);
+
+  } catch (err) {
+    console.error("Error fetching stats:", err);
+  }
+}
+
+async function fetchStatistics(type, value) {
+  const range = computeRange(type, value);
+  let url = "/api/statistics";
+  if (range) {
+    url += `?start_date=${range.start}&stop_date=${range.stop}`;
+  }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch statistics");
+  const data = await res.json();
+  return data;
+}
+
+// helpers
+
 function toISODate(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -35,42 +97,7 @@ function computeRange(type, value) {
   return { start: toISODate(start), stop: toISODate(stop) };
 }
 
-async function fetchStatistics(type, value) {
-  const range = computeRange(type, value);
-  let url = "/api/statistics";
-  if (range) {
-    url += `?start_date=${range.start}&stop_date=${range.stop}`;
-  }
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Failed to fetch statistics");
-  const data = await res.json();
-  return data;
-}
-
-async function loadAndRender(type, value, label) {
-  try {
-    // fetch stats
-    const modalEl = document.getElementById("loadingModal");
-    const modal = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
-    modal.show();  
-    const stats = await fetchStatistics(type, value);
-    modal.hide();
-
-    // render stats
-    renderSummary(stats, label);
-    buildAuthorsChart(stats.authors_statistics.authors);
-    buildAuthorsStackedChart(stats.authors_statistics.authors);
-    buildHourByAuthorChart(stats.historical_statistics.hour_of_day);
-    buildWeekByAuthorChart(stats.historical_statistics.day_of_week);
-    buildDayOfMonthByAuthorChart(stats.historical_statistics.day_of_month);
-    buildLinesChart(stats.lines_statistics.items);
-    buildCommitTypeChart(stats.commit_type.timeseries);
-    buildAuthorsTable(stats.authors_statistics.authors);
-
-  } catch (err) {
-    console.error("Error fetching stats:", err);
-  }
-}
+// renderers
 
 function renderSummary(stats, rangeLabel) {
   const s = stats.commits_summary;
@@ -79,9 +106,15 @@ function renderSummary(stats, rangeLabel) {
   const summaryEl = document.getElementById("titleBranch");
   if (!summaryEl) return;
 
+  let branchInfo = "";
+  if (stats.additional_data && stats.additional_data.name_branch) {
+    branchInfo = `<strong>Repository branch name:</strong> ${stats.additional_data.name_branch}<br>`;
+  }
+
   summaryEl.innerHTML = `
       <div>
         <strong>Statistics for:</strong> ${rangeLabel.toLowerCase()}<br>
+        ${branchInfo}
         <strong>Total number of authors:</strong> ${s.total_number_authors}<br>
         <strong>Total number of commits:</strong> ${s.total_number_commit}<br>
         <strong>Date of the first commit:</strong> ${s.date_first_commit}<br>
@@ -465,22 +498,3 @@ function buildAuthorsTable(authorsData) {
     tbody.appendChild(row);
   }
 }
-
-// start
-document.addEventListener("DOMContentLoaded", () => {
-  const menu = document.getElementById("rangeMenu");
-  const btn = document.getElementById("rangeDropdownBtn");
-
-  loadAndRender("months", 1, "Last month");
-
-  menu.addEventListener("click", (e) => {
-    const item = e.target.closest(".dropdown-item");
-    if (!item) return;
-    e.preventDefault();
-    const type = item.dataset.type;
-    const value = item.dataset.value;
-    const label = item.textContent.trim();
-    btn.textContent = item.textContent.trim();
-    loadAndRender(type, value, label);
-  });
-});
