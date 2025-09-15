@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-async function loadAndRender(type, value, label) {
+async function loadAndRender(type, value, timeIntervalLabel) {
   try {
     // fetch stats
     const modalEl = document.getElementById("loadingModal");
@@ -30,18 +30,19 @@ async function loadAndRender(type, value, label) {
     modal.hide();
 
     // render stats
-    renderSummary(stats, label);
-    buildCommitTypeChart(stats.commit_type.commit_type_by_week);
+    renderGeneralStatistics(stats, timeIntervalLabel);
+    renderWeeklyCommitTypes(stats.commit_type.commit_type_by_week);
     
-
-    buildAuthorsChart(stats.authors_statistics.authors);
-    buildAuthorsStackedChart(stats.authors_statistics.authors);
-    buildHourByAuthorChart(stats.historical_statistics.hour_of_day);
-    buildWeekByAuthorChart(stats.historical_statistics.day_of_week);
-    buildDayOfMonthByAuthorChart(stats.historical_statistics.day_of_month);
-    buildLinesChart(stats.lines_statistics.items);
+    renderInsDelLinesByAuthors(stats.authors_statistics.authors);
+    renderCommitsByAuthor(stats.authors_statistics.authors);
+    renderCodeChurnByAuthor(stats.authors_statistics.authors);
     
-    buildAuthorsTable(stats.authors_statistics.authors);
+    // buildHourByAuthorChart(stats.historical_statistics.hour_of_day);
+    // buildWeekByAuthorChart(stats.historical_statistics.day_of_week);
+    // buildDayOfMonthByAuthorChart(stats.historical_statistics.day_of_month);
+    // buildLinesChart(stats.lines_statistics.items);
+    
+    // buildAuthorsTable(stats.authors_statistics.authors);
 
   } catch (err) {
     console.error("Error fetching stats:", err);
@@ -99,26 +100,26 @@ function computeRange(type, value) {
 
 // renderers
 
-function renderSummary(stats, rangeLabel) {
+function renderGeneralStatistics(stats, rangeLabel) {
   const s = stats.commits_summary;
   if (!s) return;
 
-  const summaryEl = document.getElementById("titleBranch");
+  const summaryEl = document.getElementById("generalStatistics");
   if (!summaryEl) return;
 
   let branchInfo = "";
   if (stats.additional_data && stats.additional_data.name_branch) {
-    branchInfo = `<strong>Repository branch name:</strong> ${stats.additional_data.name_branch}<br>`;
+    branchInfo = `<strong>Branch:</strong> ${stats.additional_data.name_branch}<br>`;
   }
 
   summaryEl.innerHTML = `
       <div>
-        <strong>Statistics for:</strong> ${rangeLabel.toLowerCase()}<br>
+        <strong>Summary</strong> (${rangeLabel.toLowerCase()})<br>
         ${branchInfo}
-        <strong>Total number of authors:</strong> ${s.total_number_authors}<br>
-        <strong>Total number of commits:</strong> ${s.total_number_commit}<br>
-        <strong>Date of the first commit:</strong> ${s.date_first_commit}<br>
-        <strong>Date of the last commit:</strong> ${s.date_last_commit}
+        <strong>Contributors:</strong> ${s.total_number_authors}<br>
+        <strong>Commits:</strong> ${s.total_number_commit}<br>
+        <strong>First commit:</strong> ${s.date_first_commit}<br>
+        <strong>Last commit:</strong> ${s.date_last_commit}
       </div>
   `;
 }
@@ -131,13 +132,11 @@ function renderChart(id, config) {
   CHARTS[id] = new Chart(ctx, config);
 }
 
-function buildAuthorsChart(authorsData) {
+function renderCommitsByAuthor(authorsData) {
   const labels = Object.keys(authorsData);
   const dataValues = Object.values(authorsData).map(a => a.commits);
 
-  const ctx = document.getElementById("chartAuthors").getContext("2d");
-
-  renderChart("chartAuthors", {
+  renderChart("chartCommitsByAuthor", {
     type: "pie",
     data: {
       labels: labels,
@@ -152,15 +151,33 @@ function buildAuthorsChart(authorsData) {
   });
 }
 
-function buildAuthorsStackedChart(authorsData) {
+function renderCodeChurnByAuthor(authorsData) {
+  const labels = Object.keys(authorsData);
+  const dataValues = Object.values(authorsData).map(a => a.insertions + a.deletions);
+
+  renderChart("chartCodeChurnByAuthor", {
+    type: "doughnut",
+    data: {
+      labels: labels,
+      datasets: [{
+        data: dataValues,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: "bottom" } }
+    }
+  });
+}
+
+
+function renderInsDelLinesByAuthors(authorsData) {
   const labels = Object.keys(authorsData);
 
   const insertions = labels.map(a => authorsData[a].insertions || 0);
   const deletions  = labels.map(a => -(authorsData[a].deletions || 0));
 
-  const ctx = document.getElementById("chartAuthors2").getContext("2d");
-
-  renderChart("chartAuthors2", {
+  renderChart("chartInsDelLinesByAuthors", {
     type: "bar",
     data: {
       labels,
@@ -436,27 +453,25 @@ function buildLinesChart(linesItems) {
   });
 }
 
-function buildCommitTypeChart(commitTypeData) {
-  const ctx = document.getElementById("typesCommits").getContext("2d");
-  const dates = Object.keys(commitTypeData).sort();
+function renderWeeklyCommitTypes(weeklyCommitTypesData) {
+  const weeks = Object.keys(weeklyCommitTypesData).sort();
 
-  
-  const commitTypes = new Set();
-  dates.forEach(date => {
-    Object.keys(commitTypeData[date]).forEach(type => commitTypes.add(type));
+  const allCommitTypes = new Set();
+  weeks.forEach(date => {
+    Object.keys(weeklyCommitTypesData[date]).forEach(t => allCommitTypes.add(t));
   });
 
-  
-  const datasets = Array.from(commitTypes).map((type, i) => ({
+  const datasets = Array.from(allCommitTypes).map(type => ({
     label: type,
-    data: dates.map(date => commitTypeData[date][type] || 0),
-    stack: "commitTypes"
+    data: weeks.map(week => weeklyCommitTypesData[week][type] ?? 0),
+    stack: "commitTypes",
+    borderWidth: 1
   }));
 
-  renderChart("typesCommits", {
+  renderChart("weeklyCommitTypes", {
     type: "bar",
     data: {
-      labels: dates,
+      labels: weeks,
       datasets: datasets
     },
     options: {
@@ -465,7 +480,7 @@ function buildCommitTypeChart(commitTypeData) {
         legend: { position: "bottom" },
         tooltip: {
           mode: "index",
-          intersect: false
+          intersect: false,
         }
       },
       scales: {

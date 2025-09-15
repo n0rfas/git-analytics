@@ -8,19 +8,6 @@ from git_analytics.helpers import get_number_week
 from git_analytics.interfaces import CommitAnalyzer
 
 
-class CommitType(Enum):
-    FEATURE = "feature"
-    FIX = "fix"
-    DOCS = "docs"
-    STYLE = "style"
-    REFACTOR = "refactor"
-    TEST = "test"
-    CHORE = "chore"
-    WIP = "wip"
-    MERGE = "merge"
-    UNKNOWN = "unknown"
-
-
 @dataclass
 class Result(AnalyticsResult):
     commit_type_by_week: Dict[str, Dict[str, int]]

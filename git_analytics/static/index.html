@@ -10,7 +10,7 @@
 </head>
 <body class="d-flex flex-column min-vh-100">
     <!-- top menu -->
-    <header class="bg-dark text-white py-3">
+    <header class="bg-dark text-white py-3 sticky-top">
         <div class="container-fluid d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
                 <img src="favicon.svg" alt="Logo" width="32" height="32" class="me-2">
@@ -64,18 +64,18 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="card h-100 w-100">
                             <div class="card-header">
-                                <span>Common statistics</span>
+                                <span>General statistics</span>
                                 <i class="bi bi-info-circle"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="right"
-                                    title="Here you can see overall repository statistics: total commits, authors, and time range.">
+                                    title="Summary of repository activity for the selected time range.">
                                 </i>
                             </div>
                             <div class="card-body">
-                                <span id="titleBranch"></span>
+                                <span id="generalStatistics"></span>
                             </div>
                         </div>
                     </div>
@@ -84,26 +84,76 @@
                     <div class="col-md-12">
                         <div class="card h-100 w-100">
                             <div class="card-header">
-                                <span>Types of commits by date</span>
+                                <span>Weekly commit types</span>
                                 <i class="bi bi-info-circle"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="right"
-                                    title="Here you can see overall repository statistics: total commits, authors, and time range.">
+                                    title="This chart shows the number of commits per week, grouped by type (feature, fix, docs, style, refactor, test, chore, wip, merge). A single commit can belong to one or multiple types.">
                                 </i>
                             </div>
                             <div class="card-body">
-                                <canvas id="typesCommits"></canvas>
+                                <canvas id="weeklyCommitTypes"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
             <section class="view d-none" data-view="authors">
-                <h2>Authors</h2>
-                <div class="card mb-3">
-                    <div class="card-header">Commits by author</div>
-                    <div class="card-body"><canvas id="authorsChart"></canvas></div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <h2>Authors</h2>
+                    </div>
                 </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card h-100 w-100">
+                            <div class="card-header">
+                                <span>Lines insertions & deletions per author</span>
+                                <i class="bi bi-info-circle"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="right"
+                                    title="This chart shows the number of lines each author has added (insertions) and removed (deletions) during the selected time interval.">
+                                </i>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="chartInsDelLinesByAuthors"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card h-100 w-100">
+                            <div class="card-header">
+                                <span>Code churn by author</span>
+                                <i class="bi bi-info-circle"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="right"
+                                    title="This chart shows code churn: the sum of all insertions and deletions made by each author during the chosen period.">
+                                </i>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="chartCodeChurnByAuthor"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100 w-100">
+                            <div class="card-header">
+                                <span>Commit totals by author</span>
+                                <i class="bi bi-info-circle"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="right"
+                                    title="Displays how many commits each author contributed in the selected interval.">
+                                </i>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="chartCommitsByAuthor"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </section>
             <section class="view d-none" data-view="commits">
                 <h2>Commits</h2>
