@@ -75,6 +75,7 @@ async function loadAndRender(type, value, timeIntervalLabel) {
     buildWeekByAuthorChart(stats.historical_statistics.day_of_week);
     buildDayOfMonthByAuthorChart(stats.historical_statistics.day_of_month);
     
+    renderExtensionsHorizontalBar(stats.language_statistics.files_extensions_total);
     buildLinesOfCodeChart(stats.lines_statistics.items);
   } catch (err) {
     console.error("Error fetching stats:", err);
@@ -454,6 +455,76 @@ function buildDayOfMonthByAuthorChart(dayOfMonthData) {
       scales: {
         x: { stacked: true, title: { display: true, text: "Day of Month" } },
         y: { stacked: true, beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: "Commits" } }
+      }
+    }
+  });
+}
+
+function renderExtensionsHorizontalBar(filesExtensionsTotal) {
+  const COLOR_INSERTIONS = "#198754";
+  const COLOR_DELETIONS  = "#dc3545";
+
+  const cleanKey = (k) => String(k).trim().replace(/}+$/, "");
+
+  const items = Object.entries(filesExtensionsTotal).map(([ext, v]) => {
+    const key = cleanKey(ext) || "no_extension";
+    const ins = Number(v?.insertions || 0);
+    const del = Number(v?.deletions || 0);
+    return { ext: key, insertions: ins, deletions: del };
+  });
+
+  const filtered = items.filter(it => it.insertions !== 0 || it.deletions !== 0);
+
+  filtered.sort((a, b) => (b.insertions + b.deletions) - (a.insertions + a.deletions));
+
+  const labels = filtered.map(it => it.ext);
+  const insertions = filtered.map(it => it.insertions);
+  const deletions  = filtered.map(it => -Math.abs(it.deletions)); // отрицательные
+
+  renderChart("chartExtensions", {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Insertions",
+          data: insertions,
+          backgroundColor: COLOR_INSERTIONS,
+          borderColor: COLOR_INSERTIONS,
+          borderWidth: 1,
+          stack: "lines"
+        },
+        {
+          label: "Deletions",
+          data: deletions,
+          backgroundColor: COLOR_DELETIONS,
+          borderColor: COLOR_DELETIONS,
+          borderWidth: 1,
+          stack: "lines"
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      indexAxis: "y",
+      plugins: {
+        legend: { position: "bottom" },
+        tooltip: {
+          mode: "index",
+          intersect: false,
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: {
+            callback: (v) => Math.abs(v).toLocaleString()
+          },
+          title: { display: true, text: "Lines" }
+        },
+        y: {
+          title: { display: true, text: "File extension" }
+        }
       }
     }
   });
