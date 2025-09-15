@@ -333,7 +333,7 @@ function buildWeekByAuthorChart(dayOfWeekData) {
 
   if (authors.size === 0) {
     const totals = WEEK_LABELS.map(d =>
-      Object.values(daydayOfWeekDataOfWeek[d] || {}).reduce((s, v) => s + v, 0)
+      Object.values(dayOfWeekData[d] || {}).reduce((s, v) => s + v, 0)
     );
 
     renderChart("chartWeek", {

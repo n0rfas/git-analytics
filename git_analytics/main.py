@@ -1,3 +1,4 @@
+import os
 from wsgiref.simple_server import make_server
 
 from git import InvalidGitRepositoryError, Repo
@@ -28,7 +29,8 @@ def make_analyzers():
 
 def run():
     try:
-        repo = Repo()
+        path_repo = os.getenv("PATH_REPO", ".")
+        repo = Repo(path_repo)
         name_branch = repo.active_branch.name
     except InvalidGitRepositoryError:
         print("Error: Current directory is not a git repository.")
