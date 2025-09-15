@@ -520,10 +520,8 @@ function renderExtensionsHorizontalBar(filesExtensionsTotal) {
           ticks: {
             callback: (v) => Math.abs(v).toLocaleString()
           },
-          title: { display: true, text: "Lines" }
         },
         y: {
-          title: { display: true, text: "File extension" }
         }
       }
     }

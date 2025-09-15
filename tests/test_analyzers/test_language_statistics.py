@@ -14,6 +14,7 @@ from git_analytics.analyzers.language_statistics import _get_file_extension
         ("index.HTML", "html"),
         ("src/style.CSS", "css"),
         ("app.dev.JS", "js"),
+        ("tests/{test_data.py => test_fake_data.py}", "py"),
     ],
 )
 def test_commit_type_get_type_list(file_path, expected_extension):
