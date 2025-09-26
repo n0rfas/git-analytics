@@ -1,4 +1,3 @@
-from datetime import date
 
 import pytest
 
@@ -83,14 +82,17 @@ def test_commit_type_commit_type_by_week():
         analyzer.process(commit)
     result = analyzer.result()
 
-    assert len(result.commit_type_by_week) == 11
-    assert result.timeseries["2025-W18"] == {"unknown": 1, "style": 1, "test": 1}
-    assert result.timeseries["2025-W14"] == {"unknown": 2, "fix": 1}
-    assert result.timeseries["2025-W05"] == {"chore": 1, "refactor": 1, "fix": 1}
-    assert result.timeseries["2025-W04"] == {"unknown": 2}
-    assert result.timeseries["2025-W22"] == {"unknown": 1}
-    assert result.timeseries["2024-W36"] == {"unknown": 4, "fix": 1, "refactor": 1}
-    assert result.timeseries["2024-W01"] == {"unknown": 4}
+    assert result.commit_type_by_week["2024-W01"] == {"unknown": 4}
+    assert result.commit_type_by_week["2024-W36"] == {"fix": 1, "refactor": 1, "unknown": 4}
+    assert result.commit_type_by_week["2025-W01"] == {"unknown": 3}
+    assert result.commit_type_by_week["2025-W05"] == {"chore": 1, "fix": 1, "refactor": 1}
+    assert result.commit_type_by_week["2025-W14"] == {"fix": 1, "unknown": 2}
+    assert result.commit_type_by_week["2025-W18"] == {"style": 1, "test": 1, "unknown": 1}
+    assert result.commit_type_by_week["2025-W22"] == {"fix": 1}
+    assert result.commit_type_by_week["2025-W23"] == {"chore": 1, "unknown": 4}
+    assert result.commit_type_by_week["2025-W25"] == {"chore": 1, "fix": 1, "test": 1, "unknown": 3}
+    assert result.commit_type_by_week["2025-W26"] == {"refactor": 2, "style": 1, "unknown": 2}
+    assert result.commit_type_by_week["2025-W27"] == {"refactor": 1}
 
 
 def test_commit_type_total_counter():
@@ -101,8 +103,7 @@ def test_commit_type_total_counter():
         analyzer.process(commit)
     result = analyzer.result()
 
-    assert sum(result.total_counter.values()) == 40
-    assert result.total_counter == {"unknown": 23, "refactor": 5, "fix": 5, "chore": 3, "style": 2, "test": 2}
+    assert result.commit_type_counter == {"unknown": 23, "refactor": 5, "fix": 5, "chore": 3, "style": 2, "test": 2}
 
 
 def test_commit_type_author_total_counter():
@@ -113,5 +114,8 @@ def test_commit_type_author_total_counter():
         analyzer.process(commit)
     result = analyzer.result()
 
-    assert result.author_total_counter.keys() == {"Alice", "Bob", "Carol", "Dave", "Oscar"}
-    assert sum(sum(v.values()) for v in result.author_total_counter.values()) == 40
+    assert result.author_commit_type_counter["Alice"] == {"chore": 1, "fix": 1, "style": 2, "unknown": 7}
+    assert result.author_commit_type_counter["Bob"] == {"refactor": 5, "unknown": 1}
+    assert result.author_commit_type_counter["Carol"] == {"chore": 1, "unknown": 3}
+    assert result.author_commit_type_counter["Dave"] == {"test": 2, "unknown": 9}
+    assert result.author_commit_type_counter["Oscar"] == {"chore": 1, "fix": 4, "unknown": 3}

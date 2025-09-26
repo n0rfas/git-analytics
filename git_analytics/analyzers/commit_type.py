@@ -1,6 +1,5 @@
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from enum import Enum
 from typing import Dict, List
 
 from git_analytics.entities import AnalyticsCommit, AnalyticsResult
