@@ -23,7 +23,7 @@ def _get_file_extension(file_path: str) -> str:
     filename_parts = filename.split(".")
     if len(filename_parts) == 1 or filename_parts[0] == "":
         return "no_extension"
-    return filename_parts[-1].lower()
+    return filename_parts[-1].lower().replace("}", "")
 
 
 class LanguageAnalyzer(CommitAnalyzer):

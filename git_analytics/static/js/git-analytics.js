@@ -1,5 +1,101 @@
 const CHARTS = Object.create(null);
 
+const authorColors = {};
+
+function getAuthorColor(author) {
+  if (!authorColors[author]) {
+    const index = Object.keys(authorColors).length % BOOTSTRAP_COLORS.length;
+    authorColors[author] = BOOTSTRAP_COLORS[index];
+  }
+  return authorColors[author];
+}
+
+const BOOTSTRAP_COLORS = [
+  "#74c0fc",
+  "#ced4da",
+  "#8ce99a",
+  "#ffa8a8",
+  "#ffe066",
+  "#66d9e8",
+  "#b197fc",
+  "#ffc078",
+  "#63e6be",
+  "#d0bfff",
+  "#faa2c1",
+  "#b2f2bb",
+  "#f783ac",
+  "#adb5bd",
+  "#f1f3f5",
+  "#868e96",
+  "#e9ecef",
+  "#495057",
+  "#a5d8ff",
+  "#ffd8a8" 
+];
+
+// main logic
+
+document.addEventListener("DOMContentLoaded", () => {
+  const menu = document.getElementById("rangeMenu");
+  const btn = document.getElementById("rangeDropdownBtn");
+
+  loadAndRender("months", 1, "Last month");
+
+  menu.addEventListener("click", (e) => {
+    const item = e.target.closest(".dropdown-item");
+    if (!item) return;
+    e.preventDefault();
+    const type = item.dataset.type;
+    const value = item.dataset.value;
+    const label = item.textContent.trim();
+    btn.textContent = item.textContent.trim();
+    loadAndRender(type, value, label);
+  });
+});
+
+async function loadAndRender(type, value, timeIntervalLabel) {
+  try {
+    // fetch stats
+    const modalEl = document.getElementById("loadingModal");
+    const modal = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
+    modal.show();  
+    const stats = await fetchStatistics(type, value);
+    modal.hide();
+
+    // render stats
+    renderGeneralStatistics(stats, timeIntervalLabel);
+    renderWeeklyCommitTypes(stats.commit_type.commit_type_by_week);
+    
+    renderInsDelLinesByAuthors(stats.authors_statistics.authors);
+    renderCodeChurnByAuthor(stats.authors_statistics.authors);
+    renderCommitsByAuthor(stats.authors_statistics.authors);
+    renderAuthorsContributionsTable(stats.authors_statistics.authors);
+    
+    buildHourByAuthorChart(stats.historical_statistics.hour_of_day);
+    buildWeekByAuthorChart(stats.historical_statistics.day_of_week);
+    buildDayOfMonthByAuthorChart(stats.historical_statistics.day_of_month);
+    
+    renderExtensionsHorizontalBar(stats.language_statistics.files_extensions_total);
+    buildLinesOfCodeChart(stats.lines_statistics.items);
+  } catch (err) {
+    console.error("Error fetching stats:", err);
+  }
+}
+
+async function fetchStatistics(type, value) {
+  const range = computeRange(type, value);
+  let url = "/api/statistics";
+  if (range) {
+    url += `?start_date=${range.start}&stop_date=${range.stop}`;
+  }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch statistics");
+  const data = await res.json();
+  return data;
+}
+
+// helpers
+
 function toISODate(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -35,57 +131,28 @@ function computeRange(type, value) {
   return { start: toISODate(start), stop: toISODate(stop) };
 }
 
-async function fetchStatistics(type, value) {
-  const range = computeRange(type, value);
-  let url = "/api/statistics";
-  if (range) {
-    url += `?start_date=${range.start}&stop_date=${range.stop}`;
-  }
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Failed to fetch statistics");
-  const data = await res.json();
-  return data;
-}
+// renderers
 
-async function loadAndRender(type, value, label) {
-  try {
-    // fetch stats
-    const modalEl = document.getElementById("loadingModal");
-    const modal = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
-    modal.show();  
-    const stats = await fetchStatistics(type, value);
-    modal.hide();
-
-    // render stats
-    renderSummary(stats, label);
-    buildAuthorsChart(stats.authors_statistics.authors);
-    buildAuthorsStackedChart(stats.authors_statistics.authors);
-    buildHourByAuthorChart(stats.historical_statistics.hour_of_day);
-    buildWeekByAuthorChart(stats.historical_statistics.day_of_week);
-    buildDayOfMonthByAuthorChart(stats.historical_statistics.day_of_month);
-    buildLinesChart(stats.lines_statistics.items);
-    buildCommitTypeChart(stats.commit_type.timeseries);
-    buildAuthorsTable(stats.authors_statistics.authors);
-
-  } catch (err) {
-    console.error("Error fetching stats:", err);
-  }
-}
-
-function renderSummary(stats, rangeLabel) {
+function renderGeneralStatistics(stats, rangeLabel) {
   const s = stats.commits_summary;
   if (!s) return;
 
-  const summaryEl = document.getElementById("titleBranch");
+  const summaryEl = document.getElementById("generalStatistics");
   if (!summaryEl) return;
+
+  let branchInfo = "";
+  if (stats.additional_data && stats.additional_data.name_branch) {
+    branchInfo = `<strong>Branch:</strong> ${stats.additional_data.name_branch}<br>`;
+  }
 
   summaryEl.innerHTML = `
       <div>
-        <strong>Statistics for:</strong> ${rangeLabel.toLowerCase()}<br>
-        <strong>Total number of authors:</strong> ${s.total_number_authors}<br>
-        <strong>Total number of commits:</strong> ${s.total_number_commit}<br>
-        <strong>Date of the first commit:</strong> ${s.date_first_commit}<br>
-        <strong>Date of the last commit:</strong> ${s.date_last_commit}
+        <strong>Summary</strong> (${rangeLabel.toLowerCase()})<br>
+        ${branchInfo}
+        <strong>Contributors:</strong> ${s.total_number_authors}<br>
+        <strong>Commits:</strong> ${s.total_number_commit}<br>
+        <strong>First commit:</strong> ${s.date_first_commit}<br>
+        <strong>Last commit:</strong> ${s.date_last_commit}
       </div>
   `;
 }
@@ -98,13 +165,11 @@ function renderChart(id, config) {
   CHARTS[id] = new Chart(ctx, config);
 }
 
-function buildAuthorsChart(authorsData) {
+function renderCommitsByAuthor(authorsData) {
   const labels = Object.keys(authorsData);
   const dataValues = Object.values(authorsData).map(a => a.commits);
 
-  const ctx = document.getElementById("chartAuthors").getContext("2d");
-
-  renderChart("chartAuthors", {
+  renderChart("chartCommitsByAuthor", {
     type: "pie",
     data: {
       labels: labels,
@@ -113,21 +178,41 @@ function buildAuthorsChart(authorsData) {
       }]
     },
     options: {
+      backgroundColor: BOOTSTRAP_COLORS,
       responsive: true,
       plugins: { legend: { position: "bottom" } }
     }
   });
 }
 
-function buildAuthorsStackedChart(authorsData) {
+function renderCodeChurnByAuthor(authorsData) {
+  const labels = Object.keys(authorsData);
+  const dataValues = Object.values(authorsData).map(a => a.insertions + a.deletions);
+
+  renderChart("chartCodeChurnByAuthor", {
+    type: "doughnut",
+    data: {
+      labels: labels,
+      datasets: [{
+        data: dataValues,
+      }]
+    },
+    options: {
+      backgroundColor: BOOTSTRAP_COLORS,
+      responsive: true,
+      plugins: { legend: { position: "bottom" } }
+    }
+  });
+}
+
+
+function renderInsDelLinesByAuthors(authorsData) {
   const labels = Object.keys(authorsData);
 
   const insertions = labels.map(a => authorsData[a].insertions || 0);
   const deletions  = labels.map(a => -(authorsData[a].deletions || 0));
 
-  const ctx = document.getElementById("chartAuthors2").getContext("2d");
-
-  renderChart("chartAuthors2", {
+  renderChart("chartInsDelLinesByAuthors", {
     type: "bar",
     data: {
       labels,
@@ -136,13 +221,16 @@ function buildAuthorsStackedChart(authorsData) {
           label: "Insertions",
           data: insertions,
           borderWidth: 1,
-          stack: "lines"
+          stack: "lines",
+          backgroundColor: "#8ce99a"
+
         },
         {
           label: "Deletions",
           data: deletions,
           borderWidth: 1,
-          stack: "lines"
+          stack: "lines",
+          backgroundColor: "#f783ac"
         }
       ]
     },
@@ -174,26 +262,27 @@ function buildAuthorsStackedChart(authorsData) {
 }
 
 function buildHourByAuthorChart(hourOfDayData) {
-  
-  const HOUR_LABELS = Array.from({ length: 24 }, (_, i) => i.toString());
+  const HOUR_LABELS = Array.from({ length: 24 }, (_, i) => String(i));
 
   const authors = new Set();
-  for (const h of Object.keys(hourOfDayData)) {
-    const v = hourOfDayData[h];
-    if (v && typeof v === "object") {
-      Object.keys(v).forEach(a => authors.add(a));
-    }
+  for (const h of HOUR_LABELS) {
+    Object.keys(hourOfDayData[h] || {}).forEach(a => authors.add(a));
   }
 
-  const ctx = document.getElementById("chartDay").getContext("2d");
-
-  
   if (authors.size === 0) {
-    const totals = HOUR_LABELS.map(h => hourOfDayData[h] ?? 0);
+    const totals = HOUR_LABELS.map(h => {
+      const byAuthor = hourOfDayData[h] || {};
+      return Object.values(byAuthor).reduce((s, v) => s + v, 0);
+    });
 
     renderChart("chartDay", {
       type: "bar",
-      data: { labels: HOUR_LABELS, datasets: [{ label: "Total", data: totals, stack: "commits", borderWidth: 1 }] },
+      data: { labels: HOUR_LABELS, datasets: [{
+        label: "Total",
+        data: totals,
+        stack: "commits",
+        borderWidth: 1
+      }]},
       options: {
         responsive: true,
         plugins: {
@@ -203,7 +292,6 @@ function buildHourByAuthorChart(hourOfDayData) {
         scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } }
       }
     });
-    return;
   }
 
   
@@ -214,7 +302,8 @@ function buildHourByAuthorChart(hourOfDayData) {
       return v && typeof v === "object" ? (v[author] ?? 0) : (v ?? 0);
     }),
     stack: "commits",
-    borderWidth: 1
+    borderWidth: 1,
+    backgroundColor: getAuthorColor(author),
   }));
 
   renderChart("chartDay", {
@@ -239,43 +328,47 @@ function buildWeekByAuthorChart(dayOfWeekData) {
   const WEEK_LABELS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
   const authors = new Set();
-  for (const day of Object.keys(dayOfWeekData)) {
-    const v = dayOfWeekData[day];
-    if (v && typeof v === "object") {
-      Object.keys(v).forEach(a => authors.add(a));
-    }
+  for (const d of WEEK_LABELS) {
+    Object.keys(dayOfWeekData[d] || {}).forEach(a => authors.add(a));
   }
 
-  const ctx = document.getElementById("chartWeek").getContext("2d");
-
   if (authors.size === 0) {
-    const totals = WEEK_LABELS.map(d => dayOfWeekData[d] ?? 0);
+    const totals = WEEK_LABELS.map(d =>
+      Object.values(dayOfWeekData[d] || {}).reduce((s, v) => s + v, 0)
+    );
+
     renderChart("chartWeek", {
       type: "bar",
       data: {
         labels: WEEK_LABELS,
-        datasets: [{ label: "Total", data: totals, borderWidth: 1, stack: "commits" }]
+        datasets: [{
+          label: "Total",
+          data: totals,
+          stack: "commits",
+          borderWidth: 1,
+        }]
       },
       options: {
         responsive: true,
         plugins: {
           legend: { position: "bottom" },
-          tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y}` } }
+          tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}` } }
         },
-        scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } }
+        scales: {
+          x: { stacked: true },
+          y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
+        }
       }
     });
     return;
   }
 
-  const datasets = Array.from(authors).map((author, idx) => ({
+  const datasets = Array.from(authors).map(author => ({
     label: author,
-    data: WEEK_LABELS.map(day => {
-      const v = dayOfWeekData[day];
-      return v && typeof v === "object" ? (v[author] ?? 0) : 0;
-    }),
+    data: WEEK_LABELS.map(d => (dayOfWeekData[d] && dayOfWeekData[d][author]) || 0),
+    stack: "commits",
     borderWidth: 1,
-    stack: "commits"
+    backgroundColor: getAuthorColor(author),
   }));
 
   renderChart("chartWeek", {
@@ -285,8 +378,11 @@ function buildWeekByAuthorChart(dayOfWeekData) {
       responsive: true,
       plugins: {
         legend: { position: "bottom" },
-        tooltip: { mode: "index", intersect: false,
-          callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y}` } }
+        tooltip: {
+          mode: "index",
+          intersect: false,
+          callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}` }
+        }
       },
       scales: {
         x: { stacked: true },
@@ -297,23 +393,29 @@ function buildWeekByAuthorChart(dayOfWeekData) {
 }
 
 function buildDayOfMonthByAuthorChart(dayOfMonthData) {
-  const DAY_LABELS = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+  const DAY_LABELS = Array.from({ length: 31 }, (_, i) => String(i + 1));
 
   const authors = new Set();
-  for (const d of Object.keys(dayOfMonthData)) {
-    const v = dayOfMonthData[d];
-    if (v && typeof v === "object") {
-      Object.keys(v).forEach(a => authors.add(a));
-    }
+  for (const d of DAY_LABELS) {
+    Object.keys(dayOfMonthData[d] || {}).forEach(a => authors.add(a));
   }
 
-  const ctx = document.getElementById("chartMonth").getContext("2d");
-
   if (authors.size === 0) {
-    const totals = DAY_LABELS.map(d => dayOfMonthData[d] ?? 0);
+    const totals = DAY_LABELS.map(d =>
+      Object.values(dayOfMonthData[d] || {}).reduce((s, v) => s + v, 0)
+    );
+
     renderChart("chartMonth", {
       type: "bar",
-      data: { labels: DAY_LABELS, datasets: [{ label: "Total", data: totals, stack: "commits", borderWidth: 1 }] },
+      data: {
+        labels: DAY_LABELS,
+        datasets: [{
+          label: "Total",
+          data: totals,
+          stack: "commits",
+          borderWidth: 1
+        }]
+      },
       options: {
         responsive: true,
         plugins: {
@@ -331,12 +433,10 @@ function buildDayOfMonthByAuthorChart(dayOfMonthData) {
 
   const datasets = Array.from(authors).map(author => ({
     label: author,
-    data: DAY_LABELS.map(d => {
-      const v = dayOfMonthData[d];
-      return v && typeof v === "object" ? (v[author] ?? 0) : (v ?? 0);
-    }),
+    data: DAY_LABELS.map(d => (dayOfMonthData[d] && dayOfMonthData[d][author]) || 0),
     stack: "commits",
-    borderWidth: 1
+    borderWidth: 1,
+    backgroundColor: getAuthorColor(author),
   }));
 
   renderChart("chartMonth", {
@@ -347,27 +447,94 @@ function buildDayOfMonthByAuthorChart(dayOfMonthData) {
       plugins: {
         legend: { position: "bottom" },
         tooltip: {
-          mode: "index", intersect: false,
+          mode: "index",
+          intersect: false,
           callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}` }
         }
       },
       scales: {
-        x: { stacked: true},
-        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 }}
+        x: { stacked: true, title: { display: true, text: "Day of Month" } },
+        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: "Commits" } }
       }
     }
   });
 }
 
-function buildLinesChart(linesItems) {
+function renderExtensionsHorizontalBar(filesExtensionsTotal) {
+  const COLOR_INSERTIONS = "#198754";
+  const COLOR_DELETIONS  = "#dc3545";
+
+  const cleanKey = (k) => String(k).trim().replace(/}+$/, "");
+
+  const items = Object.entries(filesExtensionsTotal).map(([ext, v]) => {
+    const key = cleanKey(ext) || "no_extension";
+    const ins = Number(v?.insertions || 0);
+    const del = Number(v?.deletions || 0);
+    return { ext: key, insertions: ins, deletions: del };
+  });
+
+  const filtered = items.filter(it => it.insertions !== 0 || it.deletions !== 0);
+
+  filtered.sort((a, b) => (b.insertions + b.deletions) - (a.insertions + a.deletions));
+
+  const labels = filtered.map(it => it.ext);
+  const insertions = filtered.map(it => it.insertions);
+  const deletions  = filtered.map(it => -Math.abs(it.deletions)); // отрицательные
+
+  renderChart("chartExtensions", {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Insertions",
+          data: insertions,
+          backgroundColor: COLOR_INSERTIONS,
+          borderColor: COLOR_INSERTIONS,
+          borderWidth: 1,
+          stack: "lines"
+        },
+        {
+          label: "Deletions",
+          data: deletions,
+          backgroundColor: COLOR_DELETIONS,
+          borderColor: COLOR_DELETIONS,
+          borderWidth: 1,
+          stack: "lines"
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      indexAxis: "y",
+      plugins: {
+        legend: { position: "bottom" },
+        tooltip: {
+          mode: "index",
+          intersect: false,
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: {
+            callback: (v) => Math.abs(v).toLocaleString()
+          },
+        },
+        y: {
+        }
+      }
+    }
+  });
+}
+
+function buildLinesOfCodeChart(linesItems) {
   const sorted = [...linesItems].sort((a, b) => a.date.localeCompare(b.date));
 
   const labels = sorted.map(p => p.date);
   const values = sorted.map(p => p.lines);
 
-  const ctx = document.getElementById("chartLines").getContext("2d");
-
-  renderChart("chartLines", {
+  renderChart("chartLinesOfCode", {
     type: "line",
     data: {
       labels,
@@ -403,27 +570,39 @@ function buildLinesChart(linesItems) {
   });
 }
 
-function buildCommitTypeChart(commitTypeData) {
-  const ctx = document.getElementById("typesCommits").getContext("2d");
-  const dates = Object.keys(commitTypeData).sort();
+function renderWeeklyCommitTypes(weeklyCommitTypesData) {
+  const weeks = Object.keys(weeklyCommitTypesData).sort();
 
-  
-  const commitTypes = new Set();
-  dates.forEach(date => {
-    Object.keys(commitTypeData[date]).forEach(type => commitTypes.add(type));
+  const allCommitTypes = new Set();
+  weeks.forEach(date => {
+    Object.keys(weeklyCommitTypesData[date]).forEach(t => allCommitTypes.add(t));
   });
 
-  
-  const datasets = Array.from(commitTypes).map((type, i) => ({
+  const COMMIT_TYPE_COLORS = {
+    feature: "#74c0fc",   // light blue
+    fix: "#ffa8a8",       // soft red
+    docs: "#ffd8a8",      // pastel peach
+    style: "#d0bfff",     // soft purple
+    refactor: "#ffc078",  // soft orange
+    test: "#8ce99a",      // soft green
+    chore: "#ced4da",     // light gray
+    wip: "#faa2c1",       // soft pink
+    merge: "#66d9e8",     // soft cyan
+    unknown: "#adb5bd"    // neutral gray
+  };
+
+  const datasets = Array.from(allCommitTypes).map(type => ({
     label: type,
-    data: dates.map(date => commitTypeData[date][type] || 0),
-    stack: "commitTypes"
+    data: weeks.map(week => weeklyCommitTypesData[week][type] ?? 0),
+    stack: "commitTypes",
+    borderWidth: 1,
+    backgroundColor: COMMIT_TYPE_COLORS[type] || "#dee2e6" 
   }));
 
-  renderChart("typesCommits", {
+  renderChart("weeklyCommitTypes", {
     type: "bar",
     data: {
-      labels: dates,
+      labels: weeks,
       datasets: datasets
     },
     options: {
@@ -432,7 +611,7 @@ function buildCommitTypeChart(commitTypeData) {
         legend: { position: "bottom" },
         tooltip: {
           mode: "index",
-          intersect: false
+          intersect: false,
         }
       },
       scales: {
@@ -448,8 +627,8 @@ function buildCommitTypeChart(commitTypeData) {
   });
 }
 
-function buildAuthorsTable(authorsData) {
-  const tbody = document.getElementById("authorsTableBody");
+function renderAuthorsContributionsTable(authorsData) {
+  const tbody = document.getElementById("authorsContributionsTable");
   tbody.innerHTML = "";
 
   for (const [author, stats] of Object.entries(authorsData)) {
@@ -465,22 +644,3 @@ function buildAuthorsTable(authorsData) {
     tbody.appendChild(row);
   }
 }
-
-// start
-document.addEventListener("DOMContentLoaded", () => {
-  const menu = document.getElementById("rangeMenu");
-  const btn = document.getElementById("rangeDropdownBtn");
-
-  loadAndRender("months", 1, "Last month");
-
-  menu.addEventListener("click", (e) => {
-    const item = e.target.closest(".dropdown-item");
-    if (!item) return;
-    e.preventDefault();
-    const type = item.dataset.type;
-    const value = item.dataset.value;
-    const label = item.textContent.trim();
-    btn.textContent = item.textContent.trim();
-    loadAndRender(type, value, label);
-  });
-});
