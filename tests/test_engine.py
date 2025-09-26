@@ -1,11 +1,9 @@
 from datetime import date
 
 import freezegun
-from fake_analyzer import FakeAnalyzer
-from fake_commit_source import FakeCommitSource
-from fake_data import FAKE_COMMITS
 
 from git_analytics.engine import CommitAnalyticsEngine
+from tests.fakes import FAKE_COMMITS, FakeAnalyzer, FakeCommitSource
 
 
 def test_number_of_calls_without_start_and_stop_date():

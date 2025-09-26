@@ -1,3 +1,4 @@
+import os
 from wsgiref.simple_server import make_server
 
 from git import InvalidGitRepositoryError, Repo
@@ -7,6 +8,7 @@ from git_analytics.analyzers import (
     CommitsSummaryAnalyzer,
     CommitTypeAnalyzer,
     HistoricalStatisticsAnalyzer,
+    LanguageAnalyzer,
     LinesAnalyzer,
 )
 from git_analytics.engine import CommitAnalyticsEngine
@@ -20,13 +22,16 @@ def make_analyzers():
         CommitsSummaryAnalyzer(),
         CommitTypeAnalyzer(),
         HistoricalStatisticsAnalyzer(),
+        LanguageAnalyzer(),
         LinesAnalyzer(),
     ]
 
 
 def run():
     try:
-        repo = Repo()
+        path_repo = os.getenv("PATH_REPO", ".")
+        repo = Repo(path_repo)
+        name_branch = repo.active_branch.name
     except InvalidGitRepositoryError:
         print("Error: Current directory is not a git repository.")
         return
@@ -34,6 +39,7 @@ def run():
     engine = CommitAnalyticsEngine(
         source=GitCommitSource(repo),
         analyzers_factory=make_analyzers,
+        additional_data={"name_branch": name_branch},
     )
 
     web_app = create_web_app(engine=engine)

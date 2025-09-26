@@ -1,4 +1,4 @@
-from fake_data import FAKE_COMMITS
+from tests.fakes import FAKE_COMMITS
 
 
 def test_count_commit():

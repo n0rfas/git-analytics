@@ -6,6 +6,12 @@ from typing import Any, Dict
 
 
 @dataclass
+class FileChangeStats:
+    insertions: int
+    deletions: int
+
+
+@dataclass
 class AnalyticsCommit:
     sha: str
     commit_author: str
@@ -14,11 +20,15 @@ class AnalyticsCommit:
     lines_deletions: int
     files_changed: int
     message: str
+    files: Dict[str, FileChangeStats]
 
 
 @dataclass
 class AnalyticsResult:
-    def to_dict(self) -> Dict[str, Any]:
+    def __iter__(self):
+        return iter(self._to_dict().items())
+
+    def _to_dict(self) -> Dict[str, Any]:
         return self._make_json_safe(asdict(self))
 
     @staticmethod

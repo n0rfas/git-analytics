@@ -11,6 +11,7 @@ FAKE_COMMITS = [
         lines_deletions=513,
         files_changed=53,
         message="refactor(core): unify error handling",
+        files={},
     ),
     AnalyticsCommit(
         sha="458bb14985083241b2cbb33f9b890422755f967a",
@@ -20,6 +21,7 @@ FAKE_COMMITS = [
         lines_deletions=165,
         files_changed=25,
         message="refactor(core): unify error handling",
+        files={},
     ),
     AnalyticsCommit(
         sha="8d65aa6e01cc7e02b7a25f34e6427c349069c4d0",
@@ -29,6 +31,7 @@ FAKE_COMMITS = [
         lines_deletions=172,
         files_changed=24,
         message="refactor(core): extract domain modules",
+        files={},
     ),
     AnalyticsCommit(
         sha="469aeada82e913c33ae0a56adad7642275f9269f",
@@ -38,6 +41,7 @@ FAKE_COMMITS = [
         lines_deletions=40,
         files_changed=12,
         message="perf(ui): defer non-critical scripts",
+        files={},
     ),
     AnalyticsCommit(
         sha="0525408aec339f9e7351c4ccf82fbcb7270d3065",
@@ -47,6 +51,7 @@ FAKE_COMMITS = [
         lines_deletions=164,
         files_changed=9,
         message="style(ui): tweak spacing and typography",
+        files={},
     ),
     AnalyticsCommit(
         sha="69e1bc10926fcac1328c69f8d1ecf11695e2130b",
@@ -56,6 +61,7 @@ FAKE_COMMITS = [
         lines_deletions=23,
         files_changed=3,
         message="ci: cache pip and node modules",
+        files={},
     ),
     AnalyticsCommit(
         sha="2f92173be965e173dbd7da5fc1230215e69ace2a",
@@ -65,6 +71,7 @@ FAKE_COMMITS = [
         lines_deletions=162,
         files_changed=2,
         message="chore(ui): update Bootstrap and Popper",
+        files={},
     ),
     AnalyticsCommit(
         sha="a70b198888da997fce325aac67af5c2c4a389a55",
@@ -74,6 +81,7 @@ FAKE_COMMITS = [
         lines_deletions=54,
         files_changed=7,
         message="ci: add GitHub Actions for test/lint",
+        files={},
     ),
     AnalyticsCommit(
         sha="18527efbeae429ce21ac538e50dcb3a7ab39e9a7",
@@ -83,6 +91,7 @@ FAKE_COMMITS = [
         lines_deletions=343,
         files_changed=12,
         message="feat: SSR for product page",
+        files={},
     ),
     AnalyticsCommit(
         sha="1471c96f34354d9f4af2f9801192945986e50bcd",
@@ -92,6 +101,7 @@ FAKE_COMMITS = [
         lines_deletions=305,
         files_changed=12,
         message="feat(api): payment webhook handler",
+        files={},
     ),
     AnalyticsCommit(
         sha="a02f4604ea33b882dbc79b3223a7dc1dbb9412e2",
@@ -101,6 +111,7 @@ FAKE_COMMITS = [
         lines_deletions=381,
         files_changed=1,
         message="fix: CORS preflight cache mismatch",
+        files={},
     ),
     AnalyticsCommit(
         sha="8f14490b383d3cb41e686d64f554879f44f6e0b2",
@@ -110,6 +121,7 @@ FAKE_COMMITS = [
         lines_deletions=276,
         files_changed=3,
         message="feat(ui): search bar with debounced fetch",
+        files={},
     ),
     AnalyticsCommit(
         sha="44b3168d31a04e8d4823b36bc12aede6a6e367bd",
@@ -119,6 +131,7 @@ FAKE_COMMITS = [
         lines_deletions=89,
         files_changed=8,
         message="feat(ui): search bar with debounced fetch",
+        files={},
     ),
     AnalyticsCommit(
         sha="5e6059b5dd6cd31d64f0507a51eb83c8023f7b24",
@@ -128,6 +141,7 @@ FAKE_COMMITS = [
         lines_deletions=110,
         files_changed=6,
         message="ci: cache pip and node modules",
+        files={},
     ),
     AnalyticsCommit(
         sha="e077cbbcca44a0256e1ebc6b87df951aac9d3c58",
@@ -137,6 +151,7 @@ FAKE_COMMITS = [
         lines_deletions=6,
         files_changed=9,
         message="deploy: production rollout with canary",
+        files={},
     ),
     AnalyticsCommit(
         sha="1da5b3c170ef9185ad913bbb63a75d425886aae5",
@@ -146,6 +161,7 @@ FAKE_COMMITS = [
         lines_deletions=273,
         files_changed=6,
         message="feat(api): payment webhook handler",
+        files={},
     ),
     AnalyticsCommit(
         sha="735cc9ed9d4126ae9bd321a2c5f9f1e4f1bb3318",
@@ -155,6 +171,7 @@ FAKE_COMMITS = [
         lines_deletions=140,
         files_changed=1,
         message="chore: update eslint+ruff config",
+        files={},
     ),
     AnalyticsCommit(
         sha="7a9769f17f83985c2ff833237796787a9a526dc0",
@@ -164,6 +181,7 @@ FAKE_COMMITS = [
         lines_deletions=276,
         files_changed=8,
         message="fix: timezone on order timestamps",
+        files={},
     ),
     AnalyticsCommit(
         sha="873b26b46f359f80690549ccdb5176c3e0803d38",
@@ -173,6 +191,7 @@ FAKE_COMMITS = [
         lines_deletions=52,
         files_changed=4,
         message="ci: cache pip and node modules",
+        files={},
     ),
     AnalyticsCommit(
         sha="b588a4af8b4b6637b8f43b732c48c789399d37c5",
@@ -182,6 +201,7 @@ FAKE_COMMITS = [
         lines_deletions=115,
         files_changed=5,
         message="style(ui): tweak spacing and typography",
+        files={},
     ),
     AnalyticsCommit(
         sha="8a3df08b0aaee274e1213e0bf22e44da89a5c4f4",
@@ -191,6 +211,7 @@ FAKE_COMMITS = [
         lines_deletions=63,
         files_changed=3,
         message="ci: add GitHub Actions for test/lint",
+        files={},
     ),
     AnalyticsCommit(
         sha="0805edf49339101d0ca74e7853e4a7ecdd4604ae",
@@ -200,6 +221,7 @@ FAKE_COMMITS = [
         lines_deletions=120,
         files_changed=4,
         message="deploy: staging workflow with tags",
+        files={},
     ),
     AnalyticsCommit(
         sha="82f253bca7a9d128c991a26ceab12e4b86895a61",
@@ -209,6 +231,7 @@ FAKE_COMMITS = [
         lines_deletions=221,
         files_changed=9,
         message="feat(ui): product detail page with carousel",
+        files={},
     ),
     AnalyticsCommit(
         sha="ad80bfc487b0571b992d53f5fe0bf8e368839e77",
@@ -218,6 +241,7 @@ FAKE_COMMITS = [
         lines_deletions=389,
         files_changed=11,
         message="fix: CORS preflight cache mismatch",
+        files={},
     ),
     AnalyticsCommit(
         sha="644714208d3a43f4d10c3dd627d7cc25eb3813f4",
@@ -227,6 +251,7 @@ FAKE_COMMITS = [
         lines_deletions=93,
         files_changed=9,
         message="chore(api): bump dependencies",
+        files={},
     ),
     AnalyticsCommit(
         sha="4c804a9d3b4d8737020654e28413543d7a74ed4c",
@@ -236,6 +261,7 @@ FAKE_COMMITS = [
         lines_deletions=665,
         files_changed=34,
         message="refactor(core): unify error handling",
+        files={},
     ),
     AnalyticsCommit(
         sha="e5e02590613e96dfad16f84a61a74f986bf38ec8",
@@ -245,6 +271,7 @@ FAKE_COMMITS = [
         lines_deletions=325,
         files_changed=15,
         message="fix: timezone on order timestamps",
+        files={},
     ),
     AnalyticsCommit(
         sha="137ccb40b8fd51a9f03e27e71ccce8c939c7ec56",
@@ -254,6 +281,7 @@ FAKE_COMMITS = [
         lines_deletions=33,
         files_changed=9,
         message="ci: run E2E on PR",
+        files={},
     ),
     AnalyticsCommit(
         sha="7106b42fd076c99330fac29560e0ff576fbb8c52",
@@ -263,6 +291,7 @@ FAKE_COMMITS = [
         lines_deletions=105,
         files_changed=1,
         message="deploy: staging workflow with tags",
+        files={},
     ),
     AnalyticsCommit(
         sha="55c52904ec79ace536e409c556941919dfd217f8",
@@ -272,6 +301,7 @@ FAKE_COMMITS = [
         lines_deletions=288,
         files_changed=9,
         message="feat: add product filters (price, brand)",
+        files={},
     ),
     AnalyticsCommit(
         sha="d3751894ca1dc3eaba5d524dd7bf3d835e4c4a2a",
@@ -281,6 +311,7 @@ FAKE_COMMITS = [
         lines_deletions=146,
         files_changed=55,
         message="feat(core): add DTO mappers",
+        files={},
     ),
     AnalyticsCommit(
         sha="d5155cf8f6dbca83cc639fded18913a6160ff355",
@@ -290,6 +321,7 @@ FAKE_COMMITS = [
         lines_deletions=8,
         files_changed=10,
         message="fix(ui): responsive navbar collapse issue",
+        files={},
     ),
     AnalyticsCommit(
         sha="3a20223eccc1c736821490443ab6f17c58cb7756",
@@ -299,6 +331,7 @@ FAKE_COMMITS = [
         lines_deletions=117,
         files_changed=7,
         message="infra: compose file for local stack",
+        files={},
     ),
     AnalyticsCommit(
         sha="87e6afe9d4a4280b316e822cf457b0971f439ae1",
@@ -308,6 +341,7 @@ FAKE_COMMITS = [
         lines_deletions=369,
         files_changed=11,
         message="feat(api): JWT login and refresh",
+        files={},
     ),
     AnalyticsCommit(
         sha="bdd9f3e7bc45127ee3adab2584535c810252848a",
@@ -317,6 +351,7 @@ FAKE_COMMITS = [
         lines_deletions=292,
         files_changed=10,
         message="perf(ui): defer non-critical scripts",
+        files={},
     ),
     AnalyticsCommit(
         sha="68e1ca0487ab9b6362b433673ae2a5981f7b79c8",
@@ -326,6 +361,7 @@ FAKE_COMMITS = [
         lines_deletions=384,
         files_changed=16,
         message="refactor(core): flatten package structure",
+        files={},
     ),
     AnalyticsCommit(
         sha="46c775be37140f8be6a83c96a23ec73059c6fce8",
@@ -335,6 +371,7 @@ FAKE_COMMITS = [
         lines_deletions=87,
         files_changed=3,
         message="ci: docker build and multi-stage image",
+        files={},
     ),
     AnalyticsCommit(
         sha="f7b50ebdaeb91a276ae60e0c0ce52db8ed26f7df",
@@ -344,6 +381,7 @@ FAKE_COMMITS = [
         lines_deletions=6,
         files_changed=3,
         message="feat: order history page",
+        files={},
     ),
     AnalyticsCommit(
         sha="c75c45bbe80a8adbc0a279ab5bd0dcc3d7b7e9bd",
@@ -353,6 +391,7 @@ FAKE_COMMITS = [
         lines_deletions=181,
         files_changed=2,
         message="feat(ui): add product list with Bootstrap cards",
+        files={},
     ),
     AnalyticsCommit(
         sha="9a871bc4c0cad148886b6217e9152c3bdeb443e2",
@@ -362,5 +401,6 @@ FAKE_COMMITS = [
         lines_deletions=119,
         files_changed=5,
         message="feat(ui): product detail page with carousel",
+        files={},
     ),
 ]
