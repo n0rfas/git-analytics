@@ -2,7 +2,6 @@ import datetime
 
 from git_analytics.entities import AnalyticsCommit, FileChangeStats
 
-
 BIG_FAKE_DATA = [
     AnalyticsCommit(
         sha="9a871bc4c0cad148886b6217e9152c3bdeb443e2",
