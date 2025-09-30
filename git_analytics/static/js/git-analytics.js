@@ -333,7 +333,7 @@ function buildHourByAuthorChart(hourOfDayData) {
   });
 }
 
-function buildHourByAuthorChart(chartName, dataValue) {
+function buildHourByAuthorChartForAccordion(chartName, dataValue) {
   const HOUR_LABELS = Array.from({ length: 24 }, (_, i) => String(i));
 
   renderChart(chartName, {
@@ -717,7 +717,7 @@ function renderAccordionAuthors(stats) {
               </div>
             </div>
           </div>
-        </div>     
+        </div> 
     `;
 
     accordion.appendChild(item);
@@ -725,7 +725,7 @@ function renderAccordionAuthors(stats) {
     setTimeout(() => {
       SubRenderExtensionsHorizontalBar(chartExtensionsId, stats.language_statistics.files_extensions_by_author[author]);
       subRenderCommitsByAuthor(chartCommitTypesId, chartCommitTypesLabels, chartCommitTypesValues);
-      buildHourByAuthorChart(chartDayId, chartDayValues);
+      buildHourByAuthorChartForAccordion(chartDayId, chartDayValues);
     }, 0);
   });
 }
