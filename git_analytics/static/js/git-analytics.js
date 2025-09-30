@@ -69,6 +69,7 @@ async function loadAndRender(type, value, timeIntervalLabel) {
     renderInsDelLinesByAuthors(stats.authors_statistics.authors);
     renderCodeChurnByAuthor(stats.authors_statistics.authors);
     renderCommitsByAuthor(stats.authors_statistics.authors);
+    renderAccordionAuthors(stats);
     renderAuthorsContributionsTable(stats.authors_statistics.authors);
     
     buildHourByAuthorChart(stats.historical_statistics.hour_of_day);
@@ -166,15 +167,23 @@ function renderChart(id, config) {
 }
 
 function renderCommitsByAuthor(authorsData) {
+  const chartName = "chartCommitsByAuthor";
   const labels = Object.keys(authorsData);
   const dataValues = Object.values(authorsData).map(a => a.commits);
 
-  renderChart("chartCommitsByAuthor", {
+  subRenderCommitsByAuthor(chartName, labels, dataValues);
+}
+
+function subRenderCommitsByAuthor(chartName, labels, values) {
+
+  console.log("Rendering commits by author:", chartName, labels, values);
+
+  renderChart(chartName, {
     type: "pie",
     data: {
       labels: labels,
       datasets: [{
-        data: dataValues,
+        data: values,
       }]
     },
     options: {
@@ -324,6 +333,38 @@ function buildHourByAuthorChart(hourOfDayData) {
   });
 }
 
+function buildHourByAuthorChartForAccordion(chartName, dataValue) {
+  const HOUR_LABELS = Array.from({ length: 24 }, (_, i) => String(i));
+
+  renderChart(chartName, {
+    type: "bar",
+    data: {
+      labels: HOUR_LABELS,
+      datasets: [{
+        data: dataValue,
+        stack: "commits",
+        borderWidth: 1,
+        backgroundColor: "#74c0fc"
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "bottom", display: false },
+        tooltip: {
+          callbacks: {
+            label: (c) => `${c.dataset.label}: ${c.parsed.y}`
+          }
+        }
+      },
+      scales: {
+        x: { stacked: true },
+        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
+      }
+    }
+  });
+}
+
 function buildWeekByAuthorChart(dayOfWeekData) {
   const WEEK_LABELS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
@@ -461,12 +502,16 @@ function buildDayOfMonthByAuthorChart(dayOfMonthData) {
 }
 
 function renderExtensionsHorizontalBar(filesExtensionsTotal) {
+  SubRenderExtensionsHorizontalBar("chartExtensions", filesExtensionsTotal)
+}
+
+function SubRenderExtensionsHorizontalBar(chartName, data) {
   const COLOR_INSERTIONS = "#198754";
   const COLOR_DELETIONS  = "#dc3545";
 
   const cleanKey = (k) => String(k).trim().replace(/}+$/, "");
 
-  const items = Object.entries(filesExtensionsTotal).map(([ext, v]) => {
+  const items = Object.entries(data).map(([ext, v]) => {
     const key = cleanKey(ext) || "no_extension";
     const ins = Number(v?.insertions || 0);
     const del = Number(v?.deletions || 0);
@@ -481,7 +526,7 @@ function renderExtensionsHorizontalBar(filesExtensionsTotal) {
   const insertions = filtered.map(it => it.insertions);
   const deletions  = filtered.map(it => -Math.abs(it.deletions)); // отрицательные
 
-  renderChart("chartExtensions", {
+  renderChart(chartName, {
     type: "bar",
     data: {
       labels,
@@ -624,6 +669,64 @@ function renderWeeklyCommitTypes(weeklyCommitTypesData) {
         }
       }
     }
+  });
+}
+
+function renderAccordionAuthors(stats) {
+  const authorsList = Object.keys(stats.authors_statistics.authors).sort();
+
+  const accordion = document.getElementById("accordionAuthors");
+  accordion.innerHTML = "";
+
+
+  authorsList.forEach((author, index) => {
+  const collapseId = `collapse-${index}`;
+  const chartExtensionsId = `chartExtensions-${index}`;
+
+  const chartCommitTypesId = `chartCommitTypes-${index}`;
+  const chartCommitTypesLabels = Object.keys(stats.commit_type.author_commit_type_counter[author]);
+  const chartCommitTypesValues = Object.values(stats.commit_type.author_commit_type_counter[author]);
+
+  const chartDayId = `chartDay-${index}`;
+
+  const chartDayValues = Object.keys(stats.historical_statistics.hour_of_day).map(h => stats.historical_statistics.hour_of_day[h][author] || 0);
+
+
+  const item = document.createElement("div");
+  item.className = "accordion-item";
+  item.innerHTML = `
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="heading-${index}">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="false" aria-controls="${collapseId}">
+            ${author}
+          </button>
+        </h2>
+        <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="heading-${index}" data-bs-parent="#accordionAuthors">
+          <div class="accordion-body">
+            <div class="row">
+              <div class="col-md-12">
+                <canvas id="${chartExtensionsId}"></canvas>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <canvas id="${chartCommitTypesId}"></canvas>
+              </div>
+              <div class="col-md-8">
+                <canvas id="${chartDayId}"></canvas>
+              </div>
+            </div>
+          </div>
+        </div> 
+    `;
+
+    accordion.appendChild(item);
+
+    setTimeout(() => {
+      SubRenderExtensionsHorizontalBar(chartExtensionsId, stats.language_statistics.files_extensions_by_author[author]);
+      subRenderCommitsByAuthor(chartCommitTypesId, chartCommitTypesLabels, chartCommitTypesValues);
+      buildHourByAuthorChartForAccordion(chartDayId, chartDayValues);
+    }, 0);
   });
 }
 
