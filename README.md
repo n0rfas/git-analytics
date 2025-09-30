@@ -25,11 +25,7 @@ git-analytics
 
 ## Screenshots
 
-![screenshot 1](https://git-analytics.com/static/statistics_by_authors.png)
-
-![screenshot 2](https://git-analytics.com/static/types_of_commits_by_date.png)
-
-![screenshot 3](https://git-analytics.com/static/commits_by_hour_of_the_day.png)
+![screenshot 1](https://git-analytics.com/static/main_0_1_13.png)
 
 ## Development
 
