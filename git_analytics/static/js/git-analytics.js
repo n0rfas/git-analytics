@@ -333,6 +333,38 @@ function buildHourByAuthorChart(hourOfDayData) {
   });
 }
 
+function buildHourByAuthorChart(chartName, dataValue) {
+  const HOUR_LABELS = Array.from({ length: 24 }, (_, i) => String(i));
+
+  renderChart(chartName, {
+    type: "bar",
+    data: {
+      labels: HOUR_LABELS,
+      datasets: [{
+        data: dataValue,
+        stack: "commits",
+        borderWidth: 1,
+        backgroundColor: "#74c0fc"
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "bottom", display: false },
+        tooltip: {
+          callbacks: {
+            label: (c) => `${c.dataset.label}: ${c.parsed.y}`
+          }
+        }
+      },
+      scales: {
+        x: { stacked: true },
+        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
+      }
+    }
+  });
+}
+
 function buildWeekByAuthorChart(dayOfWeekData) {
   const WEEK_LABELS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
@@ -644,17 +676,25 @@ function renderAccordionAuthors(stats) {
   const authorsList = Object.keys(stats.authors_statistics.authors).sort();
 
   const accordion = document.getElementById("accordionAuthors");
+  accordion.innerHTML = "";
+
 
   authorsList.forEach((author, index) => {
   const collapseId = `collapse-${index}`;
   const chartExtensionsId = `chartExtensions-${index}`;
+
   const chartCommitTypesId = `chartCommitTypes-${index}`;
   const chartCommitTypesLabels = Object.keys(stats.commit_type.author_commit_type_counter[author]);
   const chartCommitTypesValues = Object.values(stats.commit_type.author_commit_type_counter[author]);
 
+  const chartDayId = `chartDay-${index}`;
+
+  const chartDayValues = Object.keys(stats.historical_statistics.hour_of_day).map(h => stats.historical_statistics.hour_of_day[h][author] || 0);
+
+
   const item = document.createElement("div");
   item.className = "accordion-item";
-  item.innerHTML += `
+  item.innerHTML = `
       <div class="accordion-item">
         <h2 class="accordion-header" id="heading-${index}">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="false" aria-controls="${collapseId}">
@@ -672,17 +712,20 @@ function renderAccordionAuthors(stats) {
               <div class="col-md-4">
                 <canvas id="${chartCommitTypesId}"></canvas>
               </div>
+              <div class="col-md-8">
+                <canvas id="${chartDayId}"></canvas>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </div>     
     `;
 
     accordion.appendChild(item);
 
     setTimeout(() => {
       SubRenderExtensionsHorizontalBar(chartExtensionsId, stats.language_statistics.files_extensions_by_author[author]);
-      subRenderCommitsByAuthor(chartCommitTypesId, chartCommitTypesLabels, chartCommitTypesValues)
+      subRenderCommitsByAuthor(chartCommitTypesId, chartCommitTypesLabels, chartCommitTypesValues);
+      buildHourByAuthorChart(chartDayId, chartDayValues);
     }, 0);
   });
 }
