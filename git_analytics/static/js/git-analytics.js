@@ -284,7 +284,7 @@ function buildHourByAuthorChart(hourOfDayData) {
       return Object.values(byAuthor).reduce((s, v) => s + v, 0);
     });
 
-    renderChart("chartDay", {
+    renderChart("chartCommitsByHour", {
       type: "bar",
       data: { labels: HOUR_LABELS, datasets: [{
         label: "Total",
@@ -315,7 +315,7 @@ function buildHourByAuthorChart(hourOfDayData) {
     backgroundColor: getAuthorColor(author),
   }));
 
-  renderChart("chartDay", {
+  renderChart("chartCommitsByHour", {
     type: "bar",
     data: { labels: HOUR_LABELS, datasets },
     options: {
@@ -378,7 +378,7 @@ function buildWeekByAuthorChart(dayOfWeekData) {
       Object.values(dayOfWeekData[d] || {}).reduce((s, v) => s + v, 0)
     );
 
-    renderChart("chartWeek", {
+    renderChart("chartCommitsByWeekday", {
       type: "bar",
       data: {
         labels: WEEK_LABELS,
@@ -412,7 +412,7 @@ function buildWeekByAuthorChart(dayOfWeekData) {
     backgroundColor: getAuthorColor(author),
   }));
 
-  renderChart("chartWeek", {
+  renderChart("chartCommitsByWeekday", {
     type: "bar",
     data: { labels: WEEK_LABELS, datasets },
     options: {
@@ -446,7 +446,7 @@ function buildDayOfMonthByAuthorChart(dayOfMonthData) {
       Object.values(dayOfMonthData[d] || {}).reduce((s, v) => s + v, 0)
     );
 
-    renderChart("chartMonth", {
+    renderChart("chartCommitsByDayOfMonth", {
       type: "bar",
       data: {
         labels: DAY_LABELS,
@@ -480,7 +480,7 @@ function buildDayOfMonthByAuthorChart(dayOfMonthData) {
     backgroundColor: getAuthorColor(author),
   }));
 
-  renderChart("chartMonth", {
+  renderChart("chartCommitsByDayOfMonth", {
     type: "bar",
     data: { labels: DAY_LABELS, datasets },
     options: {

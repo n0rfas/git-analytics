@@ -2,11 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Git Analytics</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Git-Analytics</title>
+    <meta name="description" content="Advanced analytics for Git repositories — commits, authors, code churn, lines of code, trends, and visual dashboards.">
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/bootstrap-icons.min.css" rel="stylesheet">
+
+    <script src="js/bootstrap.bundle.min.js" defer></script>
+    <script src="js/chart.umd.min.js" defer></script>
+    <script src="js/git-analytics.js" defer></script>
 </head>
 <body class="d-flex flex-column min-vh-100">
     <!-- top menu -->
@@ -263,7 +274,7 @@
                                     </i>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="chartDay"></canvas>
+                                    <canvas id="chartCommitsByHour"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -280,7 +291,7 @@
                                     </i>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="chartWeek"></canvas>
+                                    <canvas id="chartCommitsByWeekday"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -297,7 +308,7 @@
                                     </i>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="chartMonth"></canvas>
+                                    <canvas id="chartCommitsByDayOfMonth"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -309,12 +320,10 @@
     <!-- footer -->
     <footer class="bg-dark text-white py-3 mt-auto">
         <div class="container">
-            <span>&copy; 2025 ver 0.1.13</span>
+            <span>&copy; 2025 ver 0.1.14</span>
         </div>
     </footer>
-    <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="js/chart.umd.min.js"></script>
-    <script src="js/git-analytics.js"></script>
+
     <script>
         const views = document.querySelectorAll('.view');
         const nav = document.getElementById('sidebarNav');
