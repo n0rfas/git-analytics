@@ -1,8 +1,55 @@
+import os
 from datetime import date, timezone
-from typing import Any, Dict, Optional
+from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
 
 from git_analytics.entities import AnalyticsResult
 from git_analytics.interfaces import CommitSource
+
+
+class FileAnalyticsEngine:
+    def __init__(self, repo_path: str = "."):
+        self.repo_path = repo_path
+
+    def run(self) -> Dict[str, Tuple[int, int]]:
+        stats: Dict[str, Tuple[int, int]] = {}
+
+        repo_path = Path(self.repo_path).resolve()
+
+        ignore_dirs = {
+            ".git",
+            "__pycache__",
+            "node_modules",
+            ".venv",
+            "venv",
+            "htmlcov",
+            ".pytest_cache",
+            ".mypy_cache",
+            "dist",
+            "build",
+        }
+
+        for root, dirs, files in os.walk(repo_path):
+            dirs[:] = [d for d in dirs if d not in ignore_dirs]
+
+            for file in files:
+                file_path = Path(root) / file
+
+                extension = file_path.suffix if file_path.suffix else "(no extension)"
+
+                try:
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        line_count = sum(1 for _ in f)
+                except (UnicodeDecodeError, PermissionError, OSError):
+                    line_count = 0
+
+                if extension in stats:
+                    file_count, total_lines = stats[extension]
+                    stats[extension] = (file_count + 1, total_lines + line_count)
+                else:
+                    stats[extension] = (1, line_count)
+
+        return dict(sorted(stats.items()))
 
 
 class CommitAnalyticsEngine:
