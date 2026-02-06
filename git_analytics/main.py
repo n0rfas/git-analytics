@@ -11,7 +11,7 @@ from git_analytics.analyzers import (
     LanguageAnalyzer,
     LinesAnalyzer,
 )
-from git_analytics.engine import CommitAnalyticsEngine
+from git_analytics.engine import CommitAnalyticsEngine, FileAnalyticsEngine
 from git_analytics.sources import GitCommitSource
 from git_analytics.web_app import create_web_app
 
@@ -36,10 +36,12 @@ def run():
         print("Error: Current directory is not a git repository.")
         return
 
+    extension_stats = FileAnalyticsEngine().run()
+
     engine = CommitAnalyticsEngine(
         source=GitCommitSource(repo),
         analyzers_factory=make_analyzers,
-        additional_data={"name_branch": name_branch},
+        additional_data={"name_branch": name_branch, "extension_stats": extension_stats},
     )
 
     web_app = create_web_app(engine=engine)

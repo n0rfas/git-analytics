@@ -64,6 +64,7 @@ async function loadAndRender(type, value, timeIntervalLabel) {
 
     // render stats
     renderGeneralStatistics(stats, timeIntervalLabel);
+    renderBusFactor(stats);
     renderWeeklyCommitTypes(stats.commit_type.commit_type_by_week);
     
     renderInsDelLinesByAuthors(stats.authors_statistics.authors);
@@ -155,6 +156,24 @@ function renderGeneralStatistics(stats, rangeLabel) {
         <strong>First commit:</strong> ${s.date_first_commit}<br>
         <strong>Last commit:</strong> ${s.date_last_commit}
       </div>
+  `;
+}
+
+function renderBusFactor(stats) {
+  const busFactorEl = document.getElementById("busFactor");
+  busFactorVal= stats.post_data.bus_factor;
+  
+  let colorClass = "text-success";
+  if (busFactorVal === 1) {
+    colorClass = "text-danger";
+  } else if (busFactorVal === 2) {
+    colorClass = "text-warning";
+  }
+  
+  busFactorEl.innerHTML = `
+    <div class="d-flex align-items-center justify-content-center h-100">
+      <strong class="h1 ${colorClass}">${busFactorVal}</strong> 
+    </div>
   `;
 }
 
@@ -284,7 +303,7 @@ function buildHourByAuthorChart(hourOfDayData) {
       return Object.values(byAuthor).reduce((s, v) => s + v, 0);
     });
 
-    renderChart("chartDay", {
+    renderChart("chartCommitsByHour", {
       type: "bar",
       data: { labels: HOUR_LABELS, datasets: [{
         label: "Total",
@@ -315,7 +334,7 @@ function buildHourByAuthorChart(hourOfDayData) {
     backgroundColor: getAuthorColor(author),
   }));
 
-  renderChart("chartDay", {
+  renderChart("chartCommitsByHour", {
     type: "bar",
     data: { labels: HOUR_LABELS, datasets },
     options: {
@@ -378,7 +397,7 @@ function buildWeekByAuthorChart(dayOfWeekData) {
       Object.values(dayOfWeekData[d] || {}).reduce((s, v) => s + v, 0)
     );
 
-    renderChart("chartWeek", {
+    renderChart("chartCommitsByWeekday", {
       type: "bar",
       data: {
         labels: WEEK_LABELS,
@@ -412,7 +431,7 @@ function buildWeekByAuthorChart(dayOfWeekData) {
     backgroundColor: getAuthorColor(author),
   }));
 
-  renderChart("chartWeek", {
+  renderChart("chartCommitsByWeekday", {
     type: "bar",
     data: { labels: WEEK_LABELS, datasets },
     options: {
@@ -446,7 +465,7 @@ function buildDayOfMonthByAuthorChart(dayOfMonthData) {
       Object.values(dayOfMonthData[d] || {}).reduce((s, v) => s + v, 0)
     );
 
-    renderChart("chartMonth", {
+    renderChart("chartCommitsByDayOfMonth", {
       type: "bar",
       data: {
         labels: DAY_LABELS,
@@ -480,7 +499,7 @@ function buildDayOfMonthByAuthorChart(dayOfMonthData) {
     backgroundColor: getAuthorColor(author),
   }));
 
-  renderChart("chartMonth", {
+  renderChart("chartCommitsByDayOfMonth", {
     type: "bar",
     data: { labels: DAY_LABELS, datasets },
     options: {
