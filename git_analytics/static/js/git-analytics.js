@@ -64,6 +64,7 @@ async function loadAndRender(type, value, timeIntervalLabel) {
 
     // render stats
     renderGeneralStatistics(stats, timeIntervalLabel);
+    renderBusFactor(stats);
     renderWeeklyCommitTypes(stats.commit_type.commit_type_by_week);
     
     renderInsDelLinesByAuthors(stats.authors_statistics.authors);
@@ -155,6 +156,24 @@ function renderGeneralStatistics(stats, rangeLabel) {
         <strong>First commit:</strong> ${s.date_first_commit}<br>
         <strong>Last commit:</strong> ${s.date_last_commit}
       </div>
+  `;
+}
+
+function renderBusFactor(stats) {
+  const busFactorEl = document.getElementById("busFactor");
+  busFactorVal= stats.post_data.bus_factor;
+  
+  let colorClass = "text-success";
+  if (busFactorVal === 1) {
+    colorClass = "text-danger";
+  } else if (busFactorVal === 2) {
+    colorClass = "text-warning";
+  }
+  
+  busFactorEl.innerHTML = `
+    <div class="d-flex align-items-center justify-content-center h-100">
+      <strong class="h1 ${colorClass}">${busFactorVal}</strong> 
+    </div>
   `;
 }
 
