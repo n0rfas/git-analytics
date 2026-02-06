@@ -3,6 +3,7 @@ from datetime import date, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
+from git_analytics.analyzers import bus_factor_post
 from git_analytics.entities import AnalyticsResult
 from git_analytics.interfaces import CommitSource
 
@@ -86,6 +87,11 @@ class CommitAnalyticsEngine:
                 analyzer.process(commit)
 
         result = {analyzer.name: analyzer.result() for analyzer in analyzers}
+
+        # post-process
+        result["post_data"] = {}
+        result["post_data"]["bus_factor"] = bus_factor_post(result)
+
         if self._additional_data:
             result["additional_data"] = self._additional_data
         return result
