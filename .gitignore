@@ -9,3 +9,7 @@ build/
 dist/
 poetry.lock
 coverage.xml
+
+#tmp
+gen.py
+gen_data.py
