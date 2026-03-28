@@ -16,6 +16,11 @@ const routes = [
     name: "commits",
     component: () => import("../views/CommitsView.vue"),
   },
+  {
+    path: "/codebase",
+    name: "codebase",
+    component: () => import("../views/CodebaseView.vue"),
+  },
 ];
 
 export default createRouter({

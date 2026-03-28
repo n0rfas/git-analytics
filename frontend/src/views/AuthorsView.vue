@@ -2,6 +2,8 @@
 import * as echarts from "echarts";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 
+import { API_STATISTICS } from "../api.js";
+
 const loading = ref(true);
 const error = ref(null);
 const stats = ref(null);
@@ -13,7 +15,7 @@ async function load() {
   loading.value = true;
   error.value = null;
   try {
-    const r = await fetch("/api/statistics");
+    const r = await fetch(API_STATISTICS);
     if (!r.ok) {
       throw new Error(r.statusText || String(r.status));
     }
@@ -25,7 +27,22 @@ async function load() {
   }
 }
 
-const authorsStats = computed(() => stats.value?.authors_statistics?.authors ?? {});
+/** New API: activity.authors_statistics is author -> stats; legacy: authors_statistics.authors */
+const authorsStats = computed(() => {
+  const root = stats.value;
+  const fromActivity = root?.activity?.authors_statistics;
+  const legacy = root?.authors_statistics;
+  if (fromActivity != null) {
+    if (fromActivity.authors != null && typeof fromActivity.authors === "object") {
+      return fromActivity.authors;
+    }
+    return fromActivity;
+  }
+  if (legacy?.authors != null) {
+    return legacy.authors;
+  }
+  return {};
+});
 
 /** Pie slices: commit count per author (desc). */
 const commitsByAuthor = computed(() => {

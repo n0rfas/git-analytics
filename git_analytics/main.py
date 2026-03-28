@@ -1,50 +1,55 @@
-import os
 from wsgiref.simple_server import make_server
 
-from git import InvalidGitRepositoryError, Repo
-
-from git_analytics.analyzers import (
-    AuthorsStatisticsAnalyzer,
-    CommitsSummaryAnalyzer,
-    CommitTypeAnalyzer,
-    HistoricalStatisticsAnalyzer,
-    LanguageAnalyzer,
-    LinesAnalyzer,
-)
-from git_analytics.engine import CommitAnalyticsEngine, FileAnalyticsEngine
-from git_analytics.sources import GitCommitSource
 from git_analytics.web_app import create_web_app
 
 
-def make_analyzers():
-    return [
-        AuthorsStatisticsAnalyzer(),
-        CommitsSummaryAnalyzer(),
-        CommitTypeAnalyzer(),
-        HistoricalStatisticsAnalyzer(),
-        LanguageAnalyzer(),
-        LinesAnalyzer(),
-    ]
+from git_analytics.engines.repository_composition import RepositoryCompositionEngine
+from git_analytics.engines.metrics import GitHistoryWalker, MetricsEngine, InvalidGitRepositoryException
+from git_analytics.collectors.authors import AuthorCommitsCounter
+from git_analytics.collectors.code_curn_21d import CodeChurnCollector
+from git_analytics.collectors.summary import CommitsSummaryCollector
+from git_analytics.metrics.bus_factor import BusFactorMetric
+from git_analytics.collectors.commit_type import CommitTypeCollector
+from git_analytics.collectors.weekly_file_extensions import WeeklyFileExtensionsCollector
+from git_analytics.post_engine import enrich_result_data
+
+DAYS = 10_000
+
+# DAYS = 365
 
 
 def run():
     try:
-        path_repo = os.getenv("PATH_REPO", ".")
-        repo = Repo(path_repo)
-        name_branch = repo.active_branch.name
-    except InvalidGitRepositoryError:
-        print("Error: Current directory is not a git repository.")
+        history = GitHistoryWalker(since_days=DAYS)
+    except InvalidGitRepositoryException as ex:
+        print(ex)
         return
 
-    extension_stats = FileAnalyticsEngine().run()
+    collectors = [
+        AuthorCommitsCounter(),
+        CodeChurnCollector(),
+        CommitsSummaryCollector(),
+        CommitTypeCollector(),
+        WeeklyFileExtensionsCollector(),
+    ]
 
-    engine = CommitAnalyticsEngine(
-        source=GitCommitSource(repo),
-        analyzers_factory=make_analyzers,
-        additional_data={"name_branch": name_branch, "extension_stats": extension_stats},
-    )
+    metrics_engine = MetricsEngine(history=history, collectors=collectors)
+    file_engine = RepositoryCompositionEngine()
 
-    web_app = create_web_app(engine=engine)
+    data = metrics_engine.run()
+
+    result_data = {
+        "activity": data,
+        "codebase": file_engine.run(),
+        "risks": {
+            "bus_factor": BusFactorMetric(data).compute(),
+        },
+    }
+
+    # Обогащаем данные дополнительными метриками
+    result_data = enrich_result_data(result_data)
+
+    web_app = create_web_app(data=result_data)
 
     with make_server("", 8000, web_app) as httpd:
         print("Web service started at http://localhost:8000/")

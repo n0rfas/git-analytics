@@ -2,6 +2,8 @@
 import * as echarts from "echarts";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 
+import { API_STATISTICS } from "../api.js";
+
 const COMMIT_TYPE_ORDER = [
   "feature",
   "fix",
@@ -22,11 +24,14 @@ const stats = ref(null);
 const chartRef = ref(null);
 let chartInstance = null;
 
+const linesHistoryChartRef = ref(null);
+let linesHistoryChartInstance = null;
+
 async function load() {
   loading.value = true;
   error.value = null;
   try {
-    const r = await fetch("/api/statistics");
+    const r = await fetch(API_STATISTICS);
     if (!r.ok) {
       throw new Error(r.statusText || String(r.status));
     }
@@ -38,20 +43,140 @@ async function load() {
   }
 }
 
-const commitsSummary = computed(() => stats.value?.commits_summary ?? {});
-
-const commitTypeByWeek = computed(
-  () => stats.value?.commit_type?.commit_type_by_week ?? {},
-);
-
-const busFactor = computed(() => {
-  const root = stats.value?.post_data?.bus_factor;
-  const nested = stats.value?.commits_summary?.post_data?.bus_factor;
-  const v = root ?? nested;
-  return v == null ? "—" : v;
+/** New API: activity.commits_summary; legacy: root commits_summary */
+const commitsSummary = computed(() => {
+  const root = stats.value;
+  return root?.activity?.commits_summary ?? root?.commits_summary ?? {};
 });
 
-const branch = computed(() => stats.value?.additional_data?.name_branch ?? "—");
+const commitTypeRaw = computed(() => {
+  const root = stats.value;
+  return (
+    root?.activity?.commit_type ??
+    root?.commit_type?.commit_type_by_week ??
+    {}
+  );
+});
+
+const commitTypeWeeks = computed(() => {
+  const raw = commitTypeRaw.value;
+  return Object.keys(raw).sort();
+});
+
+const commitTypes = computed(() => {
+  const raw = commitTypeRaw.value;
+  const typeSet = new Set();
+  for (const weekData of Object.values(raw)) {
+    if (!weekData || typeof weekData !== "object") {
+      continue;
+    }
+    Object.keys(weekData).forEach((t) => typeSet.add(t));
+  }
+  return orderedCommitTypes(typeSet);
+});
+
+/** activity.derived.weekly_lines_history: week -> { extension -> line count } */
+const weeklyLinesHistory = computed(() => {
+  const root = stats.value;
+  return root?.activity?.derived?.weekly_lines_history ?? {};
+});
+
+const weeklyLinesWeeks = computed(() => Object.keys(weeklyLinesHistory.value).sort());
+
+function orderedExtensionsByTotal(history, weeks) {
+  const extSet = new Set();
+  for (const w of weeks) {
+    const row = history[w];
+    if (row && typeof row === "object") {
+      Object.keys(row).forEach((e) => extSet.add(e));
+    }
+  }
+  const exts = [...extSet];
+  const totals = {};
+  for (const e of exts) {
+    let s = 0;
+    for (const w of weeks) {
+      const n = Number(history[w]?.[e]);
+      s += Number.isFinite(n) ? n : 0;
+    }
+    totals[e] = s;
+  }
+  return exts.sort((a, b) => totals[b] - totals[a]);
+}
+
+const weeklyLinesExtensions = computed(() =>
+  orderedExtensionsByTotal(weeklyLinesHistory.value, weeklyLinesWeeks.value),
+);
+
+const busFactorRaw = computed(() => {
+  const root = stats.value;
+  return (
+    root?.risks?.bus_factor ??
+    root?.post_data?.bus_factor ??
+    root?.commits_summary?.post_data?.bus_factor
+  );
+});
+
+const busFactor = computed(() => {
+  const v = busFactorRaw.value;
+  if (v == null) {
+    return "—";
+  }
+  if (typeof v === "number") {
+    return v;
+  }
+  if (typeof v === "object" && v.bus_factor != null) {
+    return v.bus_factor;
+  }
+  return "—";
+});
+
+const busFactorAuthors = computed(() => {
+  const v = busFactorRaw.value;
+  if (typeof v === "object" && Array.isArray(v.authors)) {
+    return v.authors;
+  }
+  return [];
+});
+
+const branch = computed(() => {
+  const cs = commitsSummary.value;
+  return (
+    cs.branch_name ??
+    stats.value?.additional_data?.name_branch ??
+    "—"
+  );
+});
+
+const contributorCount = computed(() => {
+  const cs = commitsSummary.value;
+  const n = cs.total_authors ?? cs.total_number_authors;
+  return n == null ? undefined : n;
+});
+
+const codeChurn21dPercent = computed(() => {
+  const root = stats.value;
+  const ratio = codeChurn21dRaw.value?.churn_ratio;
+  if (typeof ratio !== "number" || Number.isNaN(ratio)) {
+    return "—";
+  }
+  return Math.round(ratio * 100);
+});
+
+const codeChurn21dRaw = computed(() => {
+  const root = stats.value;
+  return root?.activity?.code_churn_21d ?? root?.code_churn_21d ?? {};
+});
+
+const codeChurnAddedLines = computed(() => {
+  const v = codeChurn21dRaw.value?.added_lines_in_period;
+  return typeof v === "number" && !Number.isNaN(v) ? v : null;
+});
+
+const codeChurnDeletedLines = computed(() => {
+  const v = codeChurn21dRaw.value?.short_lived_deleted_lines;
+  return typeof v === "number" && !Number.isNaN(v) ? v : null;
+});
 
 function fmtScalar(v) {
   if (v == null || v === "") {
@@ -66,25 +191,23 @@ function orderedCommitTypes(typeSet) {
   return [...ordered, ...extra];
 }
 
-function buildWeeklyCommitTypesOption() {
-  const raw = commitTypeByWeek.value;
-  const weeks = Object.keys(raw).sort();
-  if (weeks.length === 0) {
+function buildCommitTypesBarOption() {
+  const raw = commitTypeRaw.value;
+  const weeks = commitTypeWeeks.value;
+  const types = commitTypes.value;
+  if (weeks.length === 0 || types.length === 0) {
     return null;
   }
-
-  const typeSet = new Set();
-  for (const w of weeks) {
-    Object.keys(raw[w] || {}).forEach((t) => typeSet.add(t));
-  }
-  const types = orderedCommitTypes(typeSet);
-
   const series = types.map((type) => ({
     name: type,
     type: "bar",
     stack: "total",
     emphasis: { focus: "series" },
-    data: weeks.map((w) => raw[w]?.[type] ?? 0),
+    data: weeks.map((w) => {
+      const count = raw[w]?.[type];
+      const n = Number(count);
+      return Number.isFinite(n) ? n : 0;
+    }),
   }));
 
   return {
@@ -118,8 +241,8 @@ function buildWeeklyCommitTypesOption() {
 }
 
 function syncWeeklyChart() {
-  const raw = commitTypeByWeek.value;
-  if (Object.keys(raw).length === 0) {
+  const weeks = commitTypeWeeks.value;
+  if (weeks.length === 0) {
     chartInstance?.dispose();
     chartInstance = null;
     return;
@@ -127,7 +250,7 @@ function syncWeeklyChart() {
   if (!chartRef.value) {
     return;
   }
-  const opt = buildWeeklyCommitTypesOption();
+  const opt = buildCommitTypesBarOption();
   if (!opt) {
     chartInstance?.clear();
     return;
@@ -138,15 +261,98 @@ function syncWeeklyChart() {
   chartInstance.setOption(opt, true);
 }
 
+function buildWeeklyLinesAreaOption() {
+  const history = weeklyLinesHistory.value;
+  const weeks = weeklyLinesWeeks.value;
+  const exts = weeklyLinesExtensions.value;
+  if (weeks.length === 0 || exts.length === 0) {
+    return null;
+  }
+
+  const series = exts.map((ext) => ({
+    name: ext,
+    type: "line",
+    stack: "total",
+    areaStyle: {},
+    emphasis: { focus: "series" },
+    showSymbol: weeks.length <= 24,
+    data: weeks.map((w) => {
+      const n = Number(history[w]?.[ext]);
+      return Number.isFinite(n) ? n : 0;
+    }),
+  }));
+
+  return {
+    tooltip: {
+      trigger: "axis",
+      axisPointer: { type: "cross" },
+    },
+    legend: {
+      data: exts,
+      bottom: 0,
+      type: "scroll",
+    },
+    grid: {
+      left: "3%",
+      right: "4%",
+      bottom: "18%",
+      top: "3%",
+      containLabel: true,
+    },
+    xAxis: {
+      type: "category",
+      boundaryGap: false,
+      data: weeks,
+      axisLabel: { rotate: weeks.length > 8 ? 35 : 0 },
+    },
+    yAxis: {
+      type: "value",
+      minInterval: 1,
+    },
+    series,
+  };
+}
+
+function syncLinesHistoryChart() {
+  const weeks = weeklyLinesWeeks.value;
+  if (weeks.length === 0 || weeklyLinesExtensions.value.length === 0) {
+    linesHistoryChartInstance?.dispose();
+    linesHistoryChartInstance = null;
+    return;
+  }
+  if (!linesHistoryChartRef.value) {
+    return;
+  }
+  const opt = buildWeeklyLinesAreaOption();
+  if (!opt) {
+    linesHistoryChartInstance?.clear();
+    return;
+  }
+  if (!linesHistoryChartInstance) {
+    linesHistoryChartInstance = echarts.init(linesHistoryChartRef.value);
+  }
+  linesHistoryChartInstance.setOption(opt, true);
+}
+
 function onResize() {
   chartInstance?.resize();
+  linesHistoryChartInstance?.resize();
 }
 
 watch(
-  [stats, commitTypeByWeek],
+  [stats, commitTypeRaw, commitTypeWeeks, commitTypes],
   async () => {
     await nextTick();
     syncWeeklyChart();
+  },
+  { deep: true, flush: "post" },
+);
+
+watch(
+  [stats, weeklyLinesHistory, weeklyLinesWeeks, weeklyLinesExtensions],
+  async () => {
+    await nextTick();
+    syncLinesHistoryChart();
   },
   { deep: true, flush: "post" },
 );
@@ -160,6 +366,8 @@ onUnmounted(() => {
   window.removeEventListener("resize", onResize);
   chartInstance?.dispose();
   chartInstance = null;
+  linesHistoryChartInstance?.dispose();
+  linesHistoryChartInstance = null;
 });
 </script>
 
@@ -180,7 +388,7 @@ onUnmounted(() => {
       class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch"
     >
       <!-- General statistics -->
-      <div class="lg:col-span-8">
+      <div class="lg:col-span-4">
         <div class="card card-bordered bg-base-100 shadow-sm h-full">
           <div class="border-b border-base-300 px-4 py-3 flex items-center gap-2">
             <span class="font-semibold">General statistics</span>
@@ -220,7 +428,7 @@ onUnmounted(() => {
               <div class="flex flex-wrap justify-between gap-x-4 gap-y-1">
                 <dt class="font-bold">Contributors</dt>
                 <dd class="text-base-content/90">
-                  {{ fmtScalar(commitsSummary.total_number_authors) }}
+                  {{ fmtScalar(contributorCount) }}
                 </dd>
               </div>
               <div class="flex flex-wrap justify-between gap-x-4 gap-y-1">
@@ -277,10 +485,74 @@ onUnmounted(() => {
               </button>
             </div>
           </div>
-          <div class="card-body grow flex items-center justify-center p-6">
-            <p class="text-7xl font-bold text-error tabular-nums leading-none">
-              {{ busFactor }}
-            </p>
+          <div class="card-body grow p-6">
+            <div class="h-full grid grid-cols-2 gap-4 items-center">
+              <div class="flex items-center justify-center border-r border-base-300 pr-4">
+                <p class="text-6xl font-bold text-error tabular-nums leading-none">
+                  {{ busFactor }}
+                </p>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs uppercase tracking-wide text-base-content/60 mb-2">Authors</p>
+                <ul
+                  v-if="busFactorAuthors.length > 0"
+                  class="text-sm font-medium space-y-1 max-h-40 overflow-auto"
+                >
+                  <li v-for="author in busFactorAuthors" :key="author" class="truncate">
+                    {{ author }}
+                  </li>
+                </ul>
+                <p v-else class="text-sm text-base-content/60">No authors data</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Code churn 21d -->
+      <div class="lg:col-span-4">
+        <div class="card card-bordered bg-base-100 shadow-sm h-full min-h-[12rem] flex flex-col">
+          <div class="border-b border-base-300 px-4 py-3 flex items-center gap-2 shrink-0">
+            <span class="font-semibold">Code Churn 21d</span>
+            <div
+              class="tooltip tooltip-right before:max-w-xs before:text-left before:whitespace-normal"
+              data-tip="Short-lived deleted lines over added lines in the reporting period. Value is churn_ratio * 100, rounded."
+            >
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs btn-circle min-h-0 h-6 w-6 p-0"
+                aria-label="About code churn 21d"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 opacity-60"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="card-body grow p-6">
+            <div class="h-full grid grid-cols-2 gap-4 items-center">
+              <div class="text-sm text-base-content/80 leading-relaxed pr-2">
+                Over the last 21 days, {{ fmtScalar(codeChurnAddedLines) }} lines were added, of which
+                {{ fmtScalar(codeChurnDeletedLines) }} were deleted.
+              </div>
+              <div class="flex items-center justify-center border-l border-base-300 pl-4">
+                <p class="text-6xl font-bold text-warning tabular-nums leading-none">
+                  {{ codeChurn21dPercent }}
+                  <span class="text-2xl align-top">%</span>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -292,7 +564,7 @@ onUnmounted(() => {
             <span class="font-semibold">Weekly commit types</span>
             <div
               class="tooltip tooltip-right before:max-w-xs before:text-left before:whitespace-normal"
-              data-tip="Commits per ISO week, stacked by inferred type from commit messages (feature, fix, docs, …). One commit can count in multiple types."
+              data-tip="Stacked bar chart by week (e.g. 21W47, 21W48), where each color is a commit type and value is commits in that week."
             >
               <button
                 type="button"
@@ -318,12 +590,55 @@ onUnmounted(() => {
           </div>
           <div class="card-body p-4">
             <div
-              v-if="Object.keys(commitTypeByWeek).length === 0"
+              v-if="commitTypeWeeks.length === 0"
               class="text-sm text-base-content/60 py-12 text-center"
             >
               No commit type data for the selected range.
             </div>
             <div v-else ref="chartRef" class="w-full min-h-[22rem]" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Weekly lines by extension (stacked area) -->
+      <div class="lg:col-span-12">
+        <div class="card card-bordered bg-base-100 shadow-sm">
+          <div class="border-b border-base-300 px-4 py-3 flex items-center gap-2">
+            <span class="font-semibold">Lines of code by week</span>
+            <div
+              class="tooltip tooltip-right before:max-w-xs before:text-left before:whitespace-normal"
+              data-tip="Stacked area: estimated lines per file extension at the end of each week (from activity.derived.weekly_lines_history)."
+            >
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs btn-circle min-h-0 h-6 w-6 p-0"
+                aria-label="About weekly lines history"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 opacity-60"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="card-body p-4">
+            <div
+              v-if="weeklyLinesWeeks.length === 0 || weeklyLinesExtensions.length === 0"
+              class="text-sm text-base-content/60 py-12 text-center"
+            >
+              No weekly lines history data.
+            </div>
+            <div v-else ref="linesHistoryChartRef" class="w-full min-h-[22rem]" />
           </div>
         </div>
       </div>
