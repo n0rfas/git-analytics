@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 from abc import ABC, abstractmethod
 
-from git_analytics.engines.metrics import CommitContext
+from git_analytics.history import CommitContext
 
 
 class WeeklyCollector(ABC):

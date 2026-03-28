@@ -1,6 +1,6 @@
 from typing import List, Dict
-from git_analytics.engines.metrics import CommitContext
-from .base import WeeklyCollector
+from git_analytics.history import CommitContext
+from ._base import WeeklyCollector
 
 
 LIST_OF_TYPE_COMMIT: List[str] = ["feature", "fix", "docs", "style", "refactor", "test", "chore", "wip", "merge"]

@@ -1,7 +1,7 @@
 from typing import Dict, Any
 
 
-class BusFactorMetric:
+class BusFactorInsight:
     def __init__(self, data: Dict[str, Any]) -> None:
         self.data = data["authors_statistics"]
 

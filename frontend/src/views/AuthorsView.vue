@@ -27,21 +27,19 @@ async function load() {
   }
 }
 
-/** New API: activity.authors_statistics is author -> stats; legacy: authors_statistics.authors */
+/** Root authors_statistics or author -> stats; legacy: activity / nested .authors */
 const authorsStats = computed(() => {
   const root = stats.value;
-  const fromActivity = root?.activity?.authors_statistics;
-  const legacy = root?.authors_statistics;
-  if (fromActivity != null) {
-    if (fromActivity.authors != null && typeof fromActivity.authors === "object") {
-      return fromActivity.authors;
-    }
-    return fromActivity;
+  const pick =
+    root?.authors_statistics ??
+    root?.activity?.authors_statistics;
+  if (pick == null) {
+    return {};
   }
-  if (legacy?.authors != null) {
-    return legacy.authors;
+  if (pick.authors != null && typeof pick.authors === "object") {
+    return pick.authors;
   }
-  return {};
+  return pick;
 });
 
 /** Pie slices: commit count per author (desc). */

@@ -43,19 +43,22 @@ async function load() {
   }
 }
 
-/** New API: activity.commits_summary; legacy: root commits_summary */
+/** Root commits_summary; legacy: activity.commits_summary */
 const commitsSummary = computed(() => {
   const root = stats.value;
-  return root?.activity?.commits_summary ?? root?.commits_summary ?? {};
+  return root?.commits_summary ?? root?.activity?.commits_summary ?? {};
 });
 
 const commitTypeRaw = computed(() => {
   const root = stats.value;
-  return (
-    root?.activity?.commit_type ??
-    root?.commit_type?.commit_type_by_week ??
-    {}
-  );
+  const ct = root?.commit_type ?? root?.activity?.commit_type;
+  if (!ct || typeof ct !== "object") {
+    return {};
+  }
+  if (ct.commit_type_by_week && typeof ct.commit_type_by_week === "object") {
+    return ct.commit_type_by_week;
+  }
+  return ct;
 });
 
 const commitTypeWeeks = computed(() => {
@@ -75,10 +78,14 @@ const commitTypes = computed(() => {
   return orderedCommitTypes(typeSet);
 });
 
-/** activity.derived.weekly_lines_history: week -> { extension -> line count } */
+/** Root weekly_lines_history; legacy: activity.derived.weekly_lines_history */
 const weeklyLinesHistory = computed(() => {
   const root = stats.value;
-  return root?.activity?.derived?.weekly_lines_history ?? {};
+  return (
+    root?.weekly_lines_history ??
+    root?.activity?.derived?.weekly_lines_history ??
+    {}
+  );
 });
 
 const weeklyLinesWeeks = computed(() => Object.keys(weeklyLinesHistory.value).sort());
@@ -111,6 +118,7 @@ const weeklyLinesExtensions = computed(() =>
 const busFactorRaw = computed(() => {
   const root = stats.value;
   return (
+    root?.bus_factor ??
     root?.risks?.bus_factor ??
     root?.post_data?.bus_factor ??
     root?.commits_summary?.post_data?.bus_factor
@@ -165,7 +173,7 @@ const codeChurn21dPercent = computed(() => {
 
 const codeChurn21dRaw = computed(() => {
   const root = stats.value;
-  return root?.activity?.code_churn_21d ?? root?.code_churn_21d ?? {};
+  return root?.code_churn_21d ?? root?.activity?.code_churn_21d ?? {};
 });
 
 const codeChurnAddedLines = computed(() => {
@@ -607,7 +615,7 @@ onUnmounted(() => {
             <span class="font-semibold">Lines of code by week</span>
             <div
               class="tooltip tooltip-right before:max-w-xs before:text-left before:whitespace-normal"
-              data-tip="Stacked area: estimated lines per file extension at the end of each week (from activity.derived.weekly_lines_history)."
+              data-tip="Stacked area: estimated lines per file extension at the end of each week (weekly_lines_history)."
             >
               <button
                 type="button"

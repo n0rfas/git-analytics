@@ -3,7 +3,7 @@ from typing import Dict, Optional, List, Tuple
 from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
 
-from git_analytics.engines.metrics import CommitContext
+from git_analytics.history import CommitContext
 
 
 class CodeChurnCollector:
@@ -11,16 +11,15 @@ class CodeChurnCollector:
 
     def __init__(
         self,
-        reporting_days: int = 365,
         churn_days: int = 21,
-        now: Optional[datetime] = None,
     ) -> None:
-        self._reporting_days = reporting_days
         self._churn_days = churn_days
-        self._now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
-
-        self._report_start = self._now - timedelta(days=reporting_days)
         self._churn_window_seconds = churn_days * 24 * 60 * 60
+
+        # Начало периода отчетности устанавливается динамически:
+        # первый_коммит + churn_days
+        self._report_start: Optional[datetime] = None
+        self._first_commit_date: Optional[datetime] = None
 
         # file_path -> normalized_line -> deque[birth_ts]
         self._live_lines: Dict[str, Dict[str, deque[int]]] = defaultdict(lambda: defaultdict(deque))
@@ -38,6 +37,12 @@ class CodeChurnCollector:
         parent = commit.parents[0]
         commit_dt = ctx.committed_datetime.astimezone(timezone.utc)
         commit_ts = int(commit_dt.timestamp())
+
+        # Устанавливаем период отчетности при первом коммите
+        if self._first_commit_date is None:
+            self._first_commit_date = commit_dt
+            self._report_start = self._first_commit_date + timedelta(days=self._churn_days)
+
         is_in_reporting_period = commit_dt >= self._report_start
 
         diffs = parent.diff(commit, create_patch=True)

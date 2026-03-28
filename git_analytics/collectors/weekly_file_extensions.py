@@ -1,7 +1,7 @@
 from typing import Dict
 from pathlib import Path
-from git_analytics.engines.metrics import CommitContext
-from .base import WeeklyCollector
+from git_analytics.history import CommitContext
+from ._base import WeeklyCollector
 
 
 def _get_file_extension(file_path: str) -> str:

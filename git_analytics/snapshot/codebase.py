@@ -7,14 +7,14 @@ NO_EXTENSION = "(no extension)"
 
 
 @dataclass(frozen=True)
-class RepositoryCompositionReport:
+class CodebaseSnapshotReport:
     files_by_extension: Dict[str, int]
     lines_by_extension: Dict[str, int]
     total_files: int
     total_lines: int
 
 
-class RepositoryCompositionEngine:
+class CodebaseSnapshot:
     def __init__(self, root_path: str = ".") -> None:
         self._root = Path(root_path).resolve()
 
@@ -66,7 +66,7 @@ class RepositoryCompositionEngine:
             ".gz",
         )
 
-    def run(self) -> RepositoryCompositionReport:
+    def run(self) -> CodebaseSnapshotReport:
         files_by_extension: Dict[str, int] = {}
         lines_by_extension: Dict[str, int] = {}
 
@@ -98,7 +98,7 @@ class RepositoryCompositionEngine:
                 total_files += 1
                 total_lines += line_count
 
-        return RepositoryCompositionReport(
+        return CodebaseSnapshotReport(
             files_by_extension=dict(sorted(files_by_extension.items(), key=lambda x: x[1], reverse=True)),
             lines_by_extension=dict(sorted(lines_by_extension.items(), key=lambda x: x[1], reverse=True)),
             total_files=total_files,

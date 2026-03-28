@@ -1,4 +1,4 @@
-from git_analytics.engines.metrics import CommitContext
+from git_analytics.history import CommitContext
 
 
 class AuthorCommitsCounter:
