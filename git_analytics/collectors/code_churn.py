@@ -16,12 +16,9 @@ class CodeChurnCollector:
         self._churn_days = churn_days
         self._churn_window_seconds = churn_days * 24 * 60 * 60
 
-        # Начало периода отчетности устанавливается динамически:
-        # первый_коммит + churn_days
         self._report_start: Optional[datetime] = None
         self._first_commit_date: Optional[datetime] = None
 
-        # file_path -> normalized_line -> deque[birth_ts]
         self._live_lines: Dict[str, Dict[str, deque[int]]] = defaultdict(lambda: defaultdict(deque))
 
         self._added_lines_in_period = 0
@@ -38,7 +35,6 @@ class CodeChurnCollector:
         commit_dt = ctx.committed_datetime.astimezone(timezone.utc)
         commit_ts = int(commit_dt.timestamp())
 
-        # Устанавливаем период отчетности при первом коммите
         if self._first_commit_date is None:
             self._first_commit_date = commit_dt
             self._report_start = self._first_commit_date + timedelta(days=self._churn_days)
