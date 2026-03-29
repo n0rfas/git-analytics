@@ -8,11 +8,8 @@ const loading = ref(true);
 const error = ref(null);
 const stats = ref(null);
 
-const linesChartRef = ref(null);
-let linesChartInstance = null;
-
-const filesChartRef = ref(null);
-let filesChartInstance = null;
+const linesHistoryChartRef = ref(null);
+let linesHistoryChartInstance = null;
 
 async function load() {
   loading.value = true;
@@ -30,145 +27,128 @@ async function load() {
   }
 }
 
-const codebase = computed(() => {
-  const cb = stats.value?.codebase;
-  return cb && typeof cb === "object" ? cb : null;
+const totalLines = computed(() => stats.value?.codebase?.total_lines);
+const totalFiles = computed(() => stats.value?.codebase?.total_files);
+
+/** Root weekly_lines_history; legacy: activity.derived.weekly_lines_history */
+const weeklyLinesHistory = computed(() => {
+  const root = stats.value;
+  return (
+    root?.weekly_lines_history ??
+    root?.activity?.derived?.weekly_lines_history ??
+    {}
+  );
 });
 
-const linesByExtension = computed(() => codebase.value?.lines_by_extension ?? {});
-const filesByExtension = computed(() => codebase.value?.files_by_extension ?? {});
+const weeklyLinesWeeks = computed(() => Object.keys(weeklyLinesHistory.value).sort());
 
-/**
- * @param {Record<string, number>} raw
- * @param {{ valueLabel: string; seriesName: string }} labels
- */
-function buildHorizontalBarOption(raw, { valueLabel, seriesName }) {
-  const entries = Object.entries(raw).sort((a, b) => b[1] - a[1]);
-  if (entries.length === 0) {
+function orderedExtensionsByTotal(history, weeks) {
+  const extSet = new Set();
+  for (const w of weeks) {
+    const row = history[w];
+    if (row && typeof row === "object") {
+      Object.keys(row).forEach((e) => extSet.add(e));
+    }
+  }
+  const exts = [...extSet];
+  const totals = {};
+  for (const e of exts) {
+    let s = 0;
+    for (const w of weeks) {
+      const n = Number(history[w]?.[e]);
+      s += Number.isFinite(n) ? n : 0;
+    }
+    totals[e] = s;
+  }
+  return exts.sort((a, b) => totals[b] - totals[a]);
+}
+
+const weeklyLinesExtensions = computed(() =>
+  orderedExtensionsByTotal(weeklyLinesHistory.value, weeklyLinesWeeks.value),
+);
+
+function buildWeeklyLinesAreaOption() {
+  const history = weeklyLinesHistory.value;
+  const weeks = weeklyLinesWeeks.value;
+  const exts = weeklyLinesExtensions.value;
+  if (weeks.length === 0 || exts.length === 0) {
     return null;
   }
 
-  const categories = entries.map(([ext]) => ext);
-  const values = entries.map(([, n]) => n);
-
-  const barCount = categories.length;
-  const gridBottom = barCount > 12 ? "14%" : "8%";
+  const series = exts.map((ext) => ({
+    name: ext,
+    type: "line",
+    stack: "total",
+    areaStyle: {},
+    emphasis: { focus: "series" },
+    showSymbol: weeks.length <= 24,
+    data: weeks.map((w) => {
+      const n = Number(history[w]?.[ext]);
+      return Number.isFinite(n) ? n : 0;
+    }),
+  }));
 
   return {
     tooltip: {
       trigger: "axis",
-      axisPointer: { type: "shadow" },
-      formatter: (params) => {
-        const p = Array.isArray(params) ? params[0] : params;
-        if (!p) {
-          return "";
-        }
-        return `${p.name}<br/>${p.value.toLocaleString()} ${valueLabel}`;
-      },
+      axisPointer: { type: "cross" },
+    },
+    legend: {
+      data: exts,
+      bottom: 0,
+      type: "scroll",
     },
     grid: {
       left: "3%",
-      right: "12%",
+      right: "4%",
+      bottom: "18%",
       top: "3%",
-      bottom: gridBottom,
       containLabel: true,
     },
     xAxis: {
+      type: "category",
+      boundaryGap: false,
+      data: weeks,
+      axisLabel: { rotate: weeks.length > 8 ? 35 : 0 },
+    },
+    yAxis: {
       type: "value",
       minInterval: 1,
     },
-    yAxis: {
-      type: "category",
-      data: categories,
-      inverse: true,
-      axisLabel: {
-        width: 120,
-        overflow: "truncate",
-      },
-    },
-    series: [
-      {
-        name: seriesName,
-        type: "bar",
-        data: values,
-        emphasis: { focus: "series" },
-        label: {
-          show: barCount <= 24,
-          position: "right",
-          formatter: (p) => Number(p.value).toLocaleString(),
-        },
-      },
-    ],
+    series,
   };
 }
 
-function chartHeightPx(keyCount) {
-  return Math.min(560, Math.max(280, keyCount * 28));
-}
-
-function syncLinesChart() {
-  const raw = linesByExtension.value;
-  if (Object.keys(raw).length === 0) {
-    linesChartInstance?.dispose();
-    linesChartInstance = null;
+function syncLinesHistoryChart() {
+  const weeks = weeklyLinesWeeks.value;
+  if (weeks.length === 0 || weeklyLinesExtensions.value.length === 0) {
+    linesHistoryChartInstance?.dispose();
+    linesHistoryChartInstance = null;
     return;
   }
-  if (!linesChartRef.value) {
+  if (!linesHistoryChartRef.value) {
     return;
   }
-  const opt = buildHorizontalBarOption(raw, {
-    valueLabel: "lines",
-    seriesName: "Lines",
-  });
+  const opt = buildWeeklyLinesAreaOption();
   if (!opt) {
-    linesChartInstance?.clear();
+    linesHistoryChartInstance?.clear();
     return;
   }
-  if (!linesChartInstance) {
-    linesChartInstance = echarts.init(linesChartRef.value);
+  if (!linesHistoryChartInstance) {
+    linesHistoryChartInstance = echarts.init(linesHistoryChartRef.value);
   }
-  linesChartInstance.setOption(opt, true);
-}
-
-function syncFilesChart() {
-  const raw = filesByExtension.value;
-  if (Object.keys(raw).length === 0) {
-    filesChartInstance?.dispose();
-    filesChartInstance = null;
-    return;
-  }
-  if (!filesChartRef.value) {
-    return;
-  }
-  const opt = buildHorizontalBarOption(raw, {
-    valueLabel: "files",
-    seriesName: "Files",
-  });
-  if (!opt) {
-    filesChartInstance?.clear();
-    return;
-  }
-  if (!filesChartInstance) {
-    filesChartInstance = echarts.init(filesChartRef.value);
-  }
-  filesChartInstance.setOption(opt, true);
-}
-
-function syncCharts() {
-  syncLinesChart();
-  syncFilesChart();
+  linesHistoryChartInstance.setOption(opt, true);
 }
 
 function onResize() {
-  linesChartInstance?.resize();
-  filesChartInstance?.resize();
+  linesHistoryChartInstance?.resize();
 }
 
 watch(
-  [stats, linesByExtension, filesByExtension],
+  [stats, weeklyLinesHistory, weeklyLinesWeeks, weeklyLinesExtensions],
   async () => {
     await nextTick();
-    syncCharts();
+    syncLinesHistoryChart();
   },
   { deep: true, flush: "post" },
 );
@@ -180,14 +160,9 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener("resize", onResize);
-  linesChartInstance?.dispose();
-  linesChartInstance = null;
-  filesChartInstance?.dispose();
-  filesChartInstance = null;
+  linesHistoryChartInstance?.dispose();
+  linesHistoryChartInstance = null;
 });
-
-const totalLines = computed(() => stats.value?.codebase?.total_lines);
-const totalFiles = computed(() => stats.value?.codebase?.total_files);
 </script>
 
 <template>
@@ -204,7 +179,7 @@ const totalFiles = computed(() => stats.value?.codebase?.total_files);
 
     <div v-else class="space-y-4">
       <p class="text-base-content/70 max-w-2xl text-sm">
-        Files and lines by extension (current tree scan).
+        Repository composition, languages, and file metrics.
       </p>
 
       <div
@@ -223,15 +198,15 @@ const totalFiles = computed(() => stats.value?.codebase?.total_files);
 
       <div class="card card-bordered bg-base-100 shadow-sm">
         <div class="border-b border-base-300 px-4 py-3 flex items-center gap-2">
-          <span class="font-semibold">Lines by extension</span>
+          <span class="font-semibold">Lines of code by week</span>
           <div
             class="tooltip tooltip-right before:max-w-xs before:text-left before:whitespace-normal"
-            data-tip="Number of text lines counted per file extension in the repository (excluding ignored paths and binary files)."
+            data-tip="Stacked area: estimated lines per file extension at the end of each week (weekly_lines_history)."
           >
             <button
               type="button"
               class="btn btn-ghost btn-xs btn-circle min-h-0 h-6 w-6 p-0"
-              aria-label="About lines by extension"
+              aria-label="About weekly lines history"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -252,62 +227,12 @@ const totalFiles = computed(() => stats.value?.codebase?.total_files);
         </div>
         <div class="card-body p-4">
           <div
-            v-if="Object.keys(linesByExtension).length === 0"
+            v-if="weeklyLinesWeeks.length === 0 || weeklyLinesExtensions.length === 0"
             class="text-sm text-base-content/60 py-12 text-center"
           >
-            No extension data in codebase report.
+            No weekly lines history data.
           </div>
-          <div
-            v-else
-            ref="linesChartRef"
-            class="w-full"
-            :style="{ minHeight: `${chartHeightPx(Object.keys(linesByExtension).length)}px` }"
-          />
-        </div>
-      </div>
-
-      <div class="card card-bordered bg-base-100 shadow-sm">
-        <div class="border-b border-base-300 px-4 py-3 flex items-center gap-2">
-          <span class="font-semibold">Files by extension</span>
-          <div
-            class="tooltip tooltip-right before:max-w-xs before:text-left before:whitespace-normal"
-            data-tip="Number of files per extension in the repository (excluding ignored paths and binary files)."
-          >
-            <button
-              type="button"
-              class="btn btn-ghost btn-xs btn-circle min-h-0 h-6 w-6 p-0"
-              aria-label="About files by extension"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4 opacity-60"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div class="card-body p-4">
-          <div
-            v-if="Object.keys(filesByExtension).length === 0"
-            class="text-sm text-base-content/60 py-12 text-center"
-          >
-            No file count data in codebase report.
-          </div>
-          <div
-            v-else
-            ref="filesChartRef"
-            class="w-full"
-            :style="{ minHeight: `${chartHeightPx(Object.keys(filesByExtension).length)}px` }"
-          />
+          <div v-else ref="linesHistoryChartRef" class="w-full min-h-[22rem]" />
         </div>
       </div>
     </div>

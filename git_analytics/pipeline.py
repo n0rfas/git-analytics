@@ -32,6 +32,7 @@ def run_analytics_pipeline(repo_path: str = ".", days: int = 365):
         "weekly_lines_history": WeeklyLinesHistory(codebase, activity).compute(),
         "commits_summary": activity["commits_summary"],
         "commit_type": activity["commit_type"],
+        "author_statistics": activity["authors_statistics"],
         "code_churn_21d": {
             "churn_ratio": activity["code_churn_21d"]["churn_ratio"],
             "added_lines_in_period": activity["code_churn_21d"]["added_lines_in_period"],

@@ -32,7 +32,6 @@ watch(theme, (value) => {
 const nav = [
   { to: "/", label: "Overview" },
   { to: "/authors", label: "Authors" },
-  { to: "/commits", label: "Commits" },
   { to: "/codebase", label: "Codebase" },
 ];
 </script>
