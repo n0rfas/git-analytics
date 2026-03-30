@@ -1,7 +1,6 @@
-from typing import Dict, Optional, List, Tuple
-
 from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
+from typing import Dict, List, Optional, Tuple
 
 from git_analytics.history import CommitContext
 

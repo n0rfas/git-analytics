@@ -1,8 +1,8 @@
-import os
 import json
-from typing import Dict, Callable
-from dataclasses import is_dataclass, asdict
+import os
+from dataclasses import asdict, is_dataclass
 from datetime import date, datetime
+from typing import Callable, Dict
 
 
 def create_web_app(data: Dict[str, object]) -> Callable:

@@ -1,7 +1,8 @@
-from typing import Protocol, Dict, Iterable
+from typing import Dict, Iterable, Protocol
+
 from git import Commit
 
-from .history import GitHistoryWalker, CommitContext
+from .history import CommitContext, GitHistoryWalker
 
 
 class MetricCollector(Protocol):

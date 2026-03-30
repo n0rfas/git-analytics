@@ -1,8 +1,7 @@
 from wsgiref.simple_server import make_server
 
-from git_analytics.web_app import create_web_app
-
 from git_analytics.pipeline import run_analytics_pipeline
+from git_analytics.web_app import create_web_app
 
 DAYS = 10_000
 

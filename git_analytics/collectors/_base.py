@@ -1,6 +1,6 @@
-from datetime import datetime
-from typing import Dict, List, Any, Optional
 from abc import ABC, abstractmethod
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from git_analytics.history import CommitContext
 

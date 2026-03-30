@@ -1,14 +1,14 @@
-from .snapshot import CodebaseSnapshot
-from .history import GitHistoryWalker
-from .engine import MetricsEngine
 from .collectors import (
     AuthorCommitsCounter,
-    CommitTypeCollector,
-    CommitsSummaryCollector,
     CodeChurnCollector,
+    CommitsSummaryCollector,
+    CommitTypeCollector,
     WeeklyFileExtensionsCollector,
 )
+from .engine import MetricsEngine
+from .history import GitHistoryWalker
 from .insights import BusFactorInsight, WeeklyLinesHistory
+from .snapshot import CodebaseSnapshot
 
 
 def run_analytics_pipeline(repo_path: str = ".", days: int = 365):

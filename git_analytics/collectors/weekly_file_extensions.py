@@ -1,6 +1,8 @@
-from typing import Dict
 from pathlib import Path
+from typing import Dict
+
 from git_analytics.history import CommitContext
+
 from ._base import WeeklyCollector
 
 
