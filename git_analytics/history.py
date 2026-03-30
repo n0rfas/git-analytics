@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterator
 
-from git import Commit, InvalidGitRepositoryError, Repo
+from git import InvalidGitRepositoryError, Repo
+from git.objects.commit import Commit
 
 
 @dataclass(frozen=True)

@@ -1,6 +1,6 @@
 from typing import Dict, Iterable, Protocol
 
-from git import Commit
+from git.objects.commit import Commit
 
 from .history import CommitContext, GitHistoryWalker
 
