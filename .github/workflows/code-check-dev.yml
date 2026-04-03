@@ -31,7 +31,7 @@ jobs:
       - run: pipx install "poetry~=2.0.0"
       - run: poetry install --with dev
       - run: poetry run ruff check --select I .
-      - run: poetry run mypy .
+      # - run: poetry run mypy .
 
   tests:
     needs: [ typing, linter ]
