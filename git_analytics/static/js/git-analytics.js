@@ -35,23 +35,84 @@ const BOOTSTRAP_COLORS = [
 
 // main logic
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const menu = document.getElementById("rangeMenu");
   const btn = document.getElementById("rangeDropdownBtn");
-
-  loadAndRender("months", 1, "Last month");
 
   menu.addEventListener("click", (e) => {
     const item = e.target.closest(".dropdown-item");
     if (!item) return;
     e.preventDefault();
-    const type = item.dataset.type;
-    const value = item.dataset.value;
-    const label = item.textContent.trim();
     btn.textContent = item.textContent.trim();
-    loadAndRender(type, value, label);
+    loadAndRender(item.dataset.type, item.dataset.value, item.textContent.trim());
   });
+
+  await checkStatusAndBoot();
 });
+
+async function checkStatusAndBoot() {
+  try {
+    const res = await fetch("/api/status");
+    const status = await res.json();
+
+    if (status.can_scan) {
+      document.getElementById("scanBtn").classList.remove("d-none");
+    }
+
+    if (status.db_folder) {
+      const btn = document.getElementById("openFolderBtn");
+      const label = document.getElementById("dbFolderLabel");
+      btn.classList.remove("d-none");
+      btn.title = status.db_folder;
+      // show only the last path segment to keep the header compact
+      label.textContent = status.db_folder.split(/[\\/]/).pop();
+    }
+
+    if (!status.has_data) {
+      document.getElementById("noDataBanner").classList.remove("d-none");
+      return;
+    }
+
+    loadAndRender("months", 1, "Last month");
+  } catch (err) {
+    console.error("Failed to fetch status:", err);
+  }
+}
+
+async function openDbFolder() {
+  try {
+    await fetch("/api/open-folder", { method: "POST" });
+  } catch (err) {
+    console.error("Failed to open folder:", err);
+  }
+}
+
+async function scanRepository() {
+  const scanBtn = document.getElementById("scanBtn");
+  const scanIcon = document.getElementById("scanIcon");
+  const modalEl = document.getElementById("scanningModal");
+  const modal = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
+
+  scanBtn.disabled = true;
+  scanIcon.className = "spinner-border spinner-border-sm";
+  modal.show();
+
+  try {
+    const res = await fetch("/api/scan", { method: "POST" });
+    if (!res.ok) throw new Error("Scan failed");
+
+    document.getElementById("noDataBanner").classList.add("d-none");
+    modal.hide();
+    loadAndRender("months", 1, "Last month");
+  } catch (err) {
+    modal.hide();
+    console.error("Scan error:", err);
+    alert("Scan failed. Check the server logs.");
+  } finally {
+    scanBtn.disabled = false;
+    scanIcon.className = "bi bi-arrow-repeat";
+  }
+}
 
 async function loadAndRender(type, value, timeIntervalLabel) {
   try {
