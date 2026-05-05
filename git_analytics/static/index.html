@@ -27,13 +27,21 @@
                 <img src="favicon.svg" alt="Logo" width="32" height="32" class="me-2">
                 <h1 class="h4 mb-0">Git-Analytics</h1>
             </div>
-            <div>
+            <div class="d-flex align-items-center gap-2">
                 <a href="https://git-analytics.com" target="_blank" class="btn btn-outline-light">
                     <i class="bi bi-link-45deg"></i> Site
                 </a>
                 <a href="https://github.com/n0rfas/git-analytics"  target="_blank"  class="btn btn-outline-light">
                     <i class="bi bi-github"></i> GitHub
                 </a>
+                <button id="scanBtn" class="btn btn-success d-none" onclick="scanRepository()">
+                    <i class="bi bi-arrow-repeat" id="scanIcon"></i> Scan
+                </button>
+                <button id="openFolderBtn" class="btn btn-outline-light d-none"
+                        title="" onclick="openDbFolder()" style="font-size:0.8rem;">
+                    <i class="bi bi-folder2-open"></i>
+                    <span id="dbFolderLabel" class="ms-1"></span>
+                </button>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <div class="dropdown">
@@ -68,6 +76,19 @@
         <!-- content -->
         <main class="flex-grow-1 p-3">
             <div class="container">
+                <!-- first-run banner, shown when DB has no data -->
+                <div id="noDataBanner" class="d-none mb-4">
+                    <div class="card border-warning">
+                        <div class="card-body text-center py-5">
+                            <i class="bi bi-database-x display-4 text-warning mb-3 d-block"></i>
+                            <h4>No data yet</h4>
+                            <p class="text-muted mb-4">Scan your repository to populate the database and view analytics.</p>
+                            <button class="btn btn-success btn-lg" onclick="scanRepository()">
+                                <i class="bi bi-arrow-repeat"></i> Scan repository
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <section class="view" data-view="overview">
                     <div class="row">
                         <div class="col-md-12 mb-3">
@@ -377,6 +398,18 @@
                 <div class="modal-body">
                 <div class="spinner-border text-primary mb-3" role="status"></div>
                     <p class="mb-0"><strong>Analyzing repository. Please wait...</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scanning Modal -->
+    <div class="modal" id="scanningModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center">
+                <div class="modal-body">
+                    <div class="spinner-border text-success mb-3" role="status"></div>
+                    <p class="mb-0"><strong>Scanning repository. This may take a moment...</strong></p>
                 </div>
             </div>
         </div>

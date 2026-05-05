@@ -1,7 +1,7 @@
+import argparse
 import os
+from pathlib import Path
 from wsgiref.simple_server import make_server
-
-from git import InvalidGitRepositoryError, Repo
 
 from git_analytics.analyzers import (
     AuthorsStatisticsAnalyzer,
@@ -12,7 +12,7 @@ from git_analytics.analyzers import (
     LinesAnalyzer,
 )
 from git_analytics.engine import CommitAnalyticsEngine, FileAnalyticsEngine
-from git_analytics.sources import GitCommitSource
+from git_analytics.sources import SqliteCommitSource, repo_db_path
 from git_analytics.web_app import create_web_app
 
 
@@ -28,23 +28,27 @@ def make_analyzers():
 
 
 def run():
-    try:
-        path_repo = os.getenv("PATH_REPO", ".")
-        repo = Repo(path_repo)
-        name_branch = repo.active_branch.name
-    except InvalidGitRepositoryError:
-        print("Error: Current directory is not a git repository.")
-        return
+    parser = argparse.ArgumentParser(prog="git-analytics")
+    parser.add_argument(
+        "--db",
+        metavar="PATH",
+        help="path to SQLite database (default: user data directory)",
+    )
+    args = parser.parse_args()
 
-    extension_stats = FileAnalyticsEngine().run()
+    path_repo = os.getenv("PATH_REPO", ".")
+    db_path = Path(args.db) if args.db else repo_db_path(path_repo)
+
+    repo = _try_get_repo(path_repo)
+    additional_data = _build_additional_data(repo)
 
     engine = CommitAnalyticsEngine(
-        source=GitCommitSource(repo),
+        source=SqliteCommitSource(db_path),
         analyzers_factory=make_analyzers,
-        additional_data={"name_branch": name_branch, "extension_stats": extension_stats},
+        additional_data=additional_data,
     )
 
-    web_app = create_web_app(engine=engine)
+    web_app = create_web_app(engine=engine, db_path=db_path, repo=repo)
 
     with make_server("", 8000, web_app) as httpd:
         print("Web service started at http://localhost:8000/")
@@ -56,6 +60,28 @@ def run():
         finally:
             httpd.server_close()
             print("Web service stopped")
+
+
+def _try_get_repo(path: str):
+    try:
+        from git import InvalidGitRepositoryError, Repo
+        return Repo(path)
+    except Exception:
+        return None
+
+
+def _build_additional_data(repo):
+    data = {}
+    if repo is not None:
+        try:
+            data["name_branch"] = repo.active_branch.name
+        except Exception:
+            pass
+    try:
+        data["extension_stats"] = FileAnalyticsEngine().run()
+    except Exception:
+        pass
+    return data
 
 
 if __name__ == "__main__":
